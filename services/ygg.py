@@ -33,7 +33,7 @@ class YggService:
         # On log l'appel (sans passkey car elle n'est pas dans l'URL de recherche ici, mais utilisée plus tard)
         logging.info(f"YGG Search Params: {params}")
 
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(trust_env=True) as session:
             try:
                 async with session.get(search_url, params=params, timeout=20) as response:
                     if response.status == 200:

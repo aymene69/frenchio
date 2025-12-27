@@ -31,7 +31,7 @@ class SharewoodService:
         log_url = url.replace(self.passkey, '***PASSKEY***')
         logging.info(f"Sharewood Request: {log_url}")
 
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(trust_env=True) as session:
             try:
                 async with session.get(url, timeout=20) as response:
                     if response.status == 200:

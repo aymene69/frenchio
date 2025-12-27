@@ -42,7 +42,7 @@ class AllDebridService:
             "apikey": self.api_key
         }
         
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(trust_env=True) as session:
             try:
                 # 1. Récupérer la liste
                 async with session.get(url_list, params=params) as resp:
@@ -145,7 +145,7 @@ class AllDebridService:
                 "magnets[]": batch
             }
             
-            async with aiohttp.ClientSession() as session:
+            async with aiohttp.ClientSession(trust_env=True) as session:
                 try:
                     async with session.post(url, data=data) as response:
                         if response.status == 200:
@@ -202,7 +202,7 @@ class AllDebridService:
         # Nettoyage hash
         magnet_hash = self._clean_hash(magnet_hash)
         
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(trust_env=True) as session:
             # 1. Upload Magnet
             upload_url = f"{self.base_url}/magnet/upload"
             params = {

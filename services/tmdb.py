@@ -16,7 +16,7 @@ class TMDBService:
             "external_source": "imdb_id"
         }
         
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(trust_env=True) as session:
             try:
                 async with session.get(url, params=params) as response:
                     if response.status == 200:
