@@ -42,7 +42,7 @@ Suite à la fermeture de YGG aux services de debrid, cet addon permet de continu
 
 ```bash
 # Clone le repository
-git clone https://github.com/yourusername/frenchio.git
+git clone https://github.com/aymene69/frenchio.git
 cd frenchio
 
 # Lancement avec Docker Compose
@@ -58,7 +58,7 @@ L'addon sera accessible sur `http://localhost:7777`
 
 ```bash
 # Clone le repository
-git clone https://github.com/yourusername/frenchio.git
+git clone https://github.com/aymene69/frenchio.git
 cd frenchio
 
 # Crée un environnement virtuel
@@ -258,7 +258,7 @@ Cet addon est conçu pour un usage personnel avec vos propres comptes et tracker
 ## 📧 Support
 
 Pour toute question ou problème :
-- Ouvrez une [issue](https://github.com/yourusername/frenchio/issues)
+- Ouvrez une [issue](https://github.com/aymene69/frenchio/issues)
 - Consultez la [documentation Stremio](https://github.com/Stremio/stremio-addon-sdk)
 
 ---
