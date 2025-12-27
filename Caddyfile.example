@@ -1,0 +1,16 @@
+# Exemple de configuration Caddy pour Frenchio
+# 1. Renommez ce fichier en "Caddyfile"
+# 2. Remplacez "frenchio.votredomaine.com" par votre domaine
+# 3. Lancez avec: docker-compose -f docker-compose.https.yml up -d
+
+frenchio.votredomaine.com {
+    reverse_proxy frenchio:7777
+    
+    # En-têtes pour Stremio
+    header {
+        Access-Control-Allow-Origin *
+        Access-Control-Allow-Methods "GET, POST, OPTIONS"
+        Access-Control-Allow-Headers "Content-Type, Authorization"
+    }
+}
+

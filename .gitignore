@@ -136,6 +136,9 @@ terminals/
 qbittorrent/
 exemplesia/
 
+# Reverse proxy config (user-specific)
+Caddyfile
+
 # Logs
 *.log
 logs/

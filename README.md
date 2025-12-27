@@ -54,6 +54,8 @@ docker logs frenchio-addon -f
 
 L'addon sera accessible sur `http://localhost:7777`
 
+> ⚠️ **IMPORTANT** : Si vous hébergez l'addon sur un serveur distant (pas en localhost), vous **DEVEZ** utiliser **HTTPS**. Stremio refuse les addons HTTP non-localhost pour des raisons de sécurité. Utilisez un reverse proxy (Nginx, Caddy) avec un certificat SSL (Let's Encrypt).
+
 ### Option 2 : Installation manuelle
 
 ```bash
@@ -77,6 +79,8 @@ python main.py
 ### 1. Accéder à la page de configuration
 
 Ouvrez votre navigateur sur : `http://localhost:7777/configure`
+
+> ⚠️ Si vous hébergez sur un serveur distant, utilisez `https://votre-domaine.com/configure` (HTTPS obligatoire)
 
 ### 2. Remplir vos identifiants
 
@@ -153,6 +157,68 @@ Résultats filtrés
    - **qBittorrent** : Sinon → ajout avec téléchargement séquentiel
 5. **Nettoyage** : Suppression automatique des magnets temporaires sur AllDebrid
 
+## 🌐 Hébergement distant (HTTPS requis)
+
+Si vous hébergez Frenchio sur un serveur distant (VPS, NAS, etc.), vous **devez** utiliser HTTPS.
+
+### Déploiement rapide avec Caddy (Recommandé)
+
+Un fichier `docker-compose.https.yml` est fourni pour un déploiement HTTPS facile :
+
+```bash
+# 1. Copiez et configurez le Caddyfile
+cp Caddyfile.example Caddyfile
+# Éditez Caddyfile et remplacez "frenchio.votredomaine.com" par votre domaine
+
+# 2. Lancez avec Caddy (gère automatiquement le SSL)
+docker-compose -f docker-compose.https.yml up -d
+```
+
+Caddy va automatiquement :
+- ✅ Obtenir un certificat SSL gratuit (Let's Encrypt)
+- ✅ Le renouveler automatiquement
+- ✅ Gérer le reverse proxy
+
+### Configuration manuelle avec Nginx
+
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name frenchio.votredomaine.com;
+
+    ssl_certificate /etc/letsencrypt/live/votredomaine.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/votredomaine.com/privkey.pem;
+
+    location / {
+        proxy_pass http://localhost:7777;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+### Avec Caddy (le plus simple)
+
+```
+frenchio.votredomaine.com {
+    reverse_proxy localhost:7777
+}
+```
+
+Caddy gère automatiquement les certificats SSL avec Let's Encrypt !
+
+### Obtenir un certificat SSL gratuit
+
+```bash
+# Avec Certbot (pour Nginx/Apache)
+sudo certbot --nginx -d frenchio.votredomaine.com
+
+# Avec Caddy
+# Automatique, rien à faire !
+```
+
 ## 🔧 Configuration qBittorrent
 
 Pour un streaming optimal avec qBittorrent :
@@ -210,7 +276,38 @@ frenchio/
 └── docker-compose.yml     # Stack Docker
 ```
 
+### Schéma de déploiement
+
+```
+┌─────────────────────────────────────────────┐
+│  Stremio (Client)                           │
+│  ✅ Accepte: https:// ou http://localhost   │
+│  ❌ Refuse: http://distant                  │
+└─────────────────┬───────────────────────────┘
+                  │
+    ┌─────────────┴──────────────┐
+    │                            │
+    ▼ localhost                  ▼ distant
+┌──────────────┐          ┌──────────────┐
+│  Frenchio    │          │ Reverse Proxy│
+│ :7777 (HTTP) │          │ (HTTPS + SSL)│
+└──────────────┘          └──────┬───────┘
+                                 │
+                          ┌──────▼───────┐
+                          │  Frenchio    │
+                          │ :7777 (HTTP) │
+                          └──────────────┘
+```
+
 ## 🐛 Dépannage
+
+### L'addon n'apparaît pas dans Stremio / Erreur de connexion
+
+**Cause** : Stremio refuse les addons HTTP non-localhost
+
+**Solution** :
+- ✅ Si hébergé localement : Utilisez `http://localhost:7777` ou `http://127.0.0.1:7777`
+- ✅ Si hébergé à distance : **HTTPS obligatoire** avec un reverse proxy (voir section [Hébergement distant](#-hébergement-distant-https-requis))
 
 ### Aucun résultat affiché
 

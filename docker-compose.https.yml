@@ -1,0 +1,37 @@
+version: '3.8'
+
+# Configuration pour hébergement distant avec HTTPS (Caddy)
+# Utilisez ce fichier si vous hébergez Frenchio sur un serveur distant
+
+services:
+  frenchio:
+    image: ghcr.io/aymene69/frenchio:latest
+    container_name: frenchio-addon
+    restart: unless-stopped
+    environment:
+      - PORT=7777
+    networks:
+      - frenchio-network
+
+  caddy:
+    image: caddy:latest
+    container_name: caddy-reverse-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - frenchio-network
+
+networks:
+  frenchio-network:
+    driver: bridge
+
+volumes:
+  caddy_data:
+  caddy_config:
+
