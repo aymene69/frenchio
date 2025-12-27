@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration Frenchio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6b5ce7;
+            --primary-hover: #5541d9;
+            --bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --text: #2d3436;
+            --text-muted: #636e72;
+            --border: #dfe6e9;
+            --danger: #ff7675;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 40px 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border);
+        }
+
+        .card-header {
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 15px;
+        }
+
+        h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .badge {
+            background: #e0e0e0;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: #555;
+            font-weight: normal;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .help-text {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
+        input[type="text"], input[type="url"], input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .tracker-item {
+            background: #fdfdfd;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            width: 100%;
+            font-size: 1.1rem;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            width: 100%;
+        }
+
+        .btn-outline:hover {
+            background: rgba(107, 92, 231, 0.05);
+        }
+
+        .btn-remove {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: transparent;
+            color: var(--danger);
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            font-size: 1.2rem;
+        }
+
+        .btn-remove:hover {
+            opacity: 0.7;
+        }
+
+        #installLink {
+            display: none;
+            margin-top: 30px;
+            background: #dff9fb;
+            border: 2px solid #b2bec3;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .install-btn {
+            display: inline-block;
+            background: #00cec9;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin: 15px 0;
+            box-shadow: 0 4px 15px rgba(0, 206, 201, 0.3);
+        }
+
+        .install-btn:hover {
+            transform: scale(1.05);
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🇫🇷 Frenchio</h1>
+            <div class="subtitle">Streamer depuis UNIT3D, Sharewood & YGG via AllDebrid ou qBittorrent</div>
+        </header>
+        
+        <!-- Services Obligatoires -->
+        <div class="card">
+            <div class="card-header">
+                <h2>🔑 Services Requis</h2>
+            </div>
+            
+            <div class="form-group">
+                <label for="tmdbKey">Clé API TMDB (v3)</label>
+                <input type="text" id="tmdbKey" placeholder="Ex: a1b2c3d4...">
+                <span class="help-text">Nécessaire pour récupérer les titres corrects. <a href="https://www.themoviedb.org/settings/api" target="_blank">Obtenir ma clé</a></span>
+            </div>
+
+            <div class="form-group">
+                <label for="alldebridKey">Clé API AllDebrid</label>
+                <input type="text" id="alldebridKey" placeholder="Ex: xYz123...">
+                <span class="help-text">Pour vérifier le cache et débrider les liens. <a href="https://alldebrid.com/apikeys" target="_blank">Obtenir ma clé</a></span>
+            </div>
+        </div>
+
+        <!-- Optionnel: qBittorrent -->
+        <div class="card">
+            <div class="card-header">
+                <h2>📥 Client Torrent (qBittorrent) <span class="badge">Optionnel</span></h2>
+            </div>
+            <p class="help-text">
+                Alternative à AllDebrid : téléchargez directement sur votre serveur/NAS.
+                Nécessite un serveur Web (Nginx/Apache) qui expose le dossier de téléchargement.
+            </p>
+            
+            <div class="form-group">
+                <label for="qbitUrl">URL qBittorrent (WebUI)</label>
+                <input type="url" id="qbitUrl" placeholder="http://192.168.1.50:8080">
+            </div>
+            
+            <div style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex: 1;">
+                    <label for="qbitUser">Utilisateur</label>
+                    <input type="text" id="qbitUser" placeholder="admin">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label for="qbitPass">Mot de passe</label>
+                    <input type="password" id="qbitPass">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="qbitPublicUrl">URL Publique des Fichiers</label>
+                <input type="url" id="qbitPublicUrl" placeholder="http://monserveur.com/downloads">
+                <span class="help-text">L'adresse HTTP où Stremio pourra lire les fichiers téléchargés.</span>
+            </div>
+        </div>
+
+        <!-- Trackers Semi-Privés/Publics -->
+        <div class="card">
+            <div class="card-header">
+                <h2>🌐 Trackers Publics / Semi-Privés <span class="badge">Optionnel</span></h2>
+            </div>
+
+            <div class="form-group">
+                <label for="sharewoodPasskey">Passkey Sharewood</label>
+                <input type="text" id="sharewoodPasskey" placeholder="32 caractères">
+                <span class="help-text">Trouvable dans vos paramètres Sharewood.</span>
+            </div>
+
+            <div class="form-group">
+                <label for="yggPasskey">Passkey YGG</label>
+                <input type="text" id="yggPasskey" placeholder="32 caractères">
+                <span class="help-text">Trouvable dans votre profil YGG.</span>
+            </div>
+        </div>
+
+        <!-- Trackers UNIT3D -->
+        <div class="card">
+            <div class="card-header">
+                <h2>🔒 Trackers UNIT3D (Privés) <span class="badge">Recommandé</span></h2>
+            </div>
+            
+            <p class="help-text" style="margin-bottom: 20px;">
+                Ajoutez ici vos trackers basés sur le moteur UNIT3D. UNIT3D est une plateforme de tracker BitTorrent utilisée par de nombreux trackers privés français.
+                L'URL doit être la racine du site (https://site.com). Le token API se génère dans vos paramètres de profil sur le site.
+            </p>
+
+            <div id="trackersContainer">
+                <!-- Les trackers seront ajoutés ici -->
+            </div>
+            
+            <button type="button" class="btn btn-outline" onclick="addTracker()">+ Ajouter un Tracker UNIT3D</button>
+        </div>
+        
+        <div style="text-align: center; margin-top: 40px;">
+            <button type="button" class="btn btn-primary" onclick="generateLink()">🚀 Générer et Installer</button>
+        </div>
+
+        <div id="installLink">
+            <h3>Configuration prête !</h3>
+            <a href="#" id="stremioLink" class="install-btn">Installer sur Stremio</a>
+            <div id="extraLinks"></div>
+        </div>
+    </div>
+
+    <script>
+        // Placeholder remplacé par le serveur
+        const prefillConfig = {};
+
+        function addTracker(data = null) {
+            const container = document.getElementById('trackersContainer');
+            const div = document.createElement('div');
+            div.className = 'tracker-item';
+            div.innerHTML = `
+                <button type="button" class="btn-remove" onclick="this.parentElement.remove()" title="Supprimer">×</button>
+                <div class="form-group">
+                    <label>URL du Tracker</label>
+                    <input type="url" class="tracker-url" placeholder="https://votre-tracker-unit3d.com" value="${data ? data.url : ''}">
+                </div>
+                <div class="form-group">
+                    <label>Token API</label>
+                    <input type="text" class="tracker-token" placeholder="Votre API Token personnel" value="${data ? data.token : ''}">
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        // Chargement initial
+        if (prefillConfig && Object.keys(prefillConfig).length > 0) {
+            document.getElementById('tmdbKey').value = prefillConfig.tmdb_key || '';
+            document.getElementById('alldebridKey').value = prefillConfig.alldebrid_key || prefillConfig.debrid_key || '';
+            
+            // qBit
+            if (prefillConfig.qbittorrent) {
+                document.getElementById('qbitUrl').value = prefillConfig.qbittorrent.host || '';
+                document.getElementById('qbitUser').value = prefillConfig.qbittorrent.username || '';
+                document.getElementById('qbitPass').value = prefillConfig.qbittorrent.password || '';
+                document.getElementById('qbitPublicUrl').value = prefillConfig.qbittorrent.public_url || '';
+            }
+
+            document.getElementById('sharewoodPasskey').value = prefillConfig.sharewood_passkey || '';
+            document.getElementById('yggPasskey').value = prefillConfig.ygg_passkey || '';
+            
+            if (prefillConfig.trackers && prefillConfig.trackers.length > 0) {
+                prefillConfig.trackers.forEach(t => addTracker(t));
+            } else {
+                addTracker();
+            }
+        } else {
+            addTracker();
+        }
+
+        function generateLink() {
+            const tmdbKey = document.getElementById('tmdbKey').value.trim();
+            const alldebridKey = document.getElementById('alldebridKey').value.trim();
+            
+            // qBit Config
+            const qbitUrl = document.getElementById('qbitUrl').value.trim();
+            const qbitUser = document.getElementById('qbitUser').value.trim();
+            const qbitPass = document.getElementById('qbitPass').value.trim();
+            const qbitPublicUrl = document.getElementById('qbitPublicUrl').value.trim();
+            
+            const hasQbit = qbitUrl && qbitPublicUrl;
+            
+            const sharewoodPasskey = document.getElementById('sharewoodPasskey').value.trim();
+            const yggPasskey = document.getElementById('yggPasskey').value.trim();
+            
+            if (!tmdbKey) {
+                alert("Erreur : La clé TMDB est obligatoire.");
+                return;
+            }
+            
+            if (!alldebridKey && !hasQbit) {
+                alert("Erreur : Vous devez configurer soit AllDebrid, soit qBittorrent.");
+                return;
+            }
+
+            const trackers = [];
+            document.querySelectorAll('.tracker-item').forEach(item => {
+                const url = item.querySelector('.tracker-url').value.trim();
+                const token = item.querySelector('.tracker-token').value.trim();
+                
+                if (url && token) {
+                    trackers.push({
+                        url: url.replace(/\/$/, ''), 
+                        token: token
+                    });
+                }
+            });
+
+            if (trackers.length === 0 && !sharewoodPasskey && !yggPasskey) {
+                alert("Attention : Vous devez configurer au moins une source (Tracker UNIT3D, Sharewood ou YGG).");
+                return;
+            }
+
+            const config = {
+                tmdb_key: tmdbKey,
+                alldebrid_key: alldebridKey,
+                trackers: trackers,
+                sharewood_passkey: sharewoodPasskey,
+                ygg_passkey: yggPasskey,
+                qbittorrent: hasQbit ? {
+                    host: qbitUrl,
+                    username: qbitUser,
+                    password: qbitPass,
+                    public_url: qbitPublicUrl
+                } : null
+            };
+
+            const configStr = JSON.stringify(config);
+            const configB64 = btoa(configStr);
+            
+            let baseUrl = window.location.href;
+            if (baseUrl.includes('/configure')) {
+                baseUrl = baseUrl.split('/configure')[0];
+            } else if (baseUrl.includes('/')) {
+                 baseUrl = window.location.origin;
+            }
+            
+            baseUrl = baseUrl.replace(/\/$/, '');
+
+            const installUrl = `stremio://${window.location.host}/${configB64}/manifest.json`;
+            const httpInstallUrl = `${baseUrl}/${configB64}/manifest.json`;
+            const configPageUrl = `${baseUrl}/${configB64}/configure`;
+
+            const linkDiv = document.getElementById('installLink');
+            const link = document.getElementById('stremioLink');
+            const extraLinks = document.getElementById('extraLinks');
+            
+            link.href = installUrl;
+            linkDiv.style.display = 'block';
+            
+            extraLinks.innerHTML = `
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ccc;">
+                    <p style="margin-bottom: 5px;"><strong>Lien manuel (si le bouton ne marche pas) :</strong></p>
+                    <input type="text" value="${httpInstallUrl}" readonly onclick="this.select()" style="font-size: 0.9em; background: #f1f1f1;">
+                    
+                    <p style="margin-top: 15px; margin-bottom: 5px;"><strong>Lien pour modifier cette configuration plus tard :</strong></p>
+                    <input type="text" value="${configPageUrl}" readonly onclick="this.select()" style="font-size: 0.9em; background: #f1f1f1;">
+                </div>
+            `;
+            
+            linkDiv.scrollIntoView({behavior: 'smooth'});
+        }
+    </script>
+</body>
+</html>
