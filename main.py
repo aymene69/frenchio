@@ -41,6 +41,39 @@ logging.basicConfig(
     format='%(levelname)s:%(name)s:%(message)s'
 )
 
+# Configuration du proxy (HTTP_PROXY, HTTPS_PROXY)
+HTTP_PROXY = os.getenv('HTTP_PROXY') or os.getenv('http_proxy')
+HTTPS_PROXY = os.getenv('HTTPS_PROXY') or os.getenv('https_proxy')
+
+if HTTP_PROXY or HTTPS_PROXY:
+    logging.info(f"Proxy configuration detected:")
+    if HTTP_PROXY:
+        logging.info(f"  HTTP_PROXY: {HTTP_PROXY}")
+    if HTTPS_PROXY:
+        logging.info(f"  HTTPS_PROXY: {HTTPS_PROXY}")
+
+# ============================================================================
+# Helpers
+# ============================================================================
+
+def get_proxy_connector():
+    """
+    Crée un connector avec support proxy si les variables d'environnement sont définies.
+    """
+    if HTTPS_PROXY or HTTP_PROXY:
+        # aiohttp utilise HTTPS_PROXY pour les connexions HTTPS
+        return aiohttp.TCPConnector()
+    return None
+
+async def create_client_session():
+    """
+    Crée une ClientSession avec support proxy.
+    """
+    connector = get_proxy_connector()
+    
+    # Configurer le proxy via trust_env=True (utilise HTTP_PROXY/HTTPS_PROXY)
+    return aiohttp.ClientSession(connector=connector, trust_env=True)
+
 # ============================================================================
 # Middleware
 # ============================================================================
@@ -209,7 +242,7 @@ async def handle_stream(request):
     if config.get('sharewood_passkey'):
         # On a besoin des détails pour le titre
         if tmdb_id:
-             async with aiohttp.ClientSession() as session:
+             async with await create_client_session() as session:
                 url = f"https://api.themoviedb.org/3/{'movie' if stream_type == 'movie' else 'tv'}/{tmdb_id}"
                 params = {"api_key": config['tmdb_key'], "language": "fr-FR"} 
                 # Sharewood est FR, donc on force le titre FR
@@ -495,7 +528,7 @@ async def handle_resolve(request):
         
         # Télécharger le .torrent
         logging.info(f"Downloading torrent from: {download_link[:100]}...")
-        async with aiohttp.ClientSession() as session:
+        async with await create_client_session() as session:
             async with session.get(download_link) as resp:
                 if resp.status != 200:
                     logging.error(f"Failed to download .torrent: {resp.status}")

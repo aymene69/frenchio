@@ -10,6 +10,10 @@ services:
     restart: unless-stopped
     environment:
       - PORT=7777
+      # Optional: HTTP/HTTPS Proxy configuration
+      # - HTTP_PROXY=http://proxy.example.com:8080
+      # - HTTPS_PROXY=http://proxy.example.com:8080
+      # - NO_PROXY=localhost,127.0.0.1
     networks:
       - frenchio-network
 

@@ -161,7 +161,22 @@ Résultats filtrés
 
 Si vous hébergez Frenchio sur un serveur distant (VPS, NAS, etc.), vous **devez** utiliser HTTPS.
 
-### Déploiement rapide avec Caddy (Recommandé)
+### Déploiement avec Traefik
+
+Un exemple `docker-compose.traefik.example.yml` est fourni :
+
+```bash
+# 1. Copiez et personnalisez
+cp docker-compose.traefik.example.yml docker-compose.yml
+# Éditez et remplacez "frenchio.aymene.tech" par votre domaine
+
+# 2. Lancez
+docker-compose up -d
+```
+
+> **Note** : Nécessite un réseau `traefik_network` existant et Traefik déjà configuré avec Let's Encrypt.
+
+### Déploiement avec Caddy (Alternative)
 
 Un fichier `docker-compose.https.yml` est fourni pour un déploiement HTTPS facile :
 
@@ -218,6 +233,48 @@ sudo certbot --nginx -d frenchio.votredomaine.com
 # Avec Caddy
 # Automatique, rien à faire !
 ```
+
+## 🌐 Configuration Proxy (HTTP/HTTPS)
+
+Si votre réseau utilise un proxy, Frenchio le supporte nativement :
+
+### Avec Docker
+
+```bash
+# Définir les variables d'environnement proxy
+docker run -d \
+  --name frenchio \
+  -p 7777:7777 \
+  -e HTTP_PROXY=http://proxy.example.com:8080 \
+  -e HTTPS_PROXY=http://proxy.example.com:8080 \
+  -e NO_PROXY=localhost,127.0.0.1 \
+  ghcr.io/aymene69/frenchio:latest
+```
+
+### Avec Docker Compose
+
+Décommentez les lignes proxy dans `docker-compose.yml` :
+
+```yaml
+environment:
+  - PORT=7777
+  - HTTP_PROXY=http://proxy.example.com:8080
+  - HTTPS_PROXY=http://proxy.example.com:8080
+  - NO_PROXY=localhost,127.0.0.1
+```
+
+### Installation manuelle
+
+```bash
+# Définir les variables avant de lancer
+export HTTP_PROXY=http://proxy.example.com:8080
+export HTTPS_PROXY=http://proxy.example.com:8080
+export NO_PROXY=localhost,127.0.0.1
+
+python main.py
+```
+
+> **Note** : Frenchio utilise les variables standard `HTTP_PROXY`, `HTTPS_PROXY` et `NO_PROXY` (majuscules ou minuscules).
 
 ## 🔧 Configuration qBittorrent
 
