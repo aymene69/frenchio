@@ -406,46 +406,50 @@ async def handle_stream(request):
         })
     
     # 4b. Streams qBittorrent (non cachés, si configuré)
+    # Si on a des torrents cachés, on n'affiche pas les non-cachés
     if qbit_service and uncached_torrents:
-        limit = 10 if alldebrid_service else 25  # Plus de résultats si pas de debrid
-        logging.info(f"qBittorrent: Processing {min(len(uncached_torrents), limit)} torrents (out of {len(uncached_torrents)} available)")
-        
-        qbit_added = 0
-        for torrent, clean_hash in uncached_torrents[:limit]:
-            download_link = torrent.get('link') or torrent.get('download_link')
-            if not download_link:
-                logging.debug(f"Skipping torrent without download link: {torrent.get('name')}")
-                continue
+        if cached_torrents:
+            logging.info(f"qBittorrent: Skipping {len(uncached_torrents)} uncached torrents (cached results available)")
+        else:
+            limit = 10 if alldebrid_service else 25  # Plus de résultats si pas de debrid
+            logging.info(f"qBittorrent: Processing {min(len(uncached_torrents), limit)} torrents (out of {len(uncached_torrents)} available)")
             
-            source_prefix = "[Sharewood]" if torrent.get('source') == 'sharewood' else \
-                           "[YGG]" if torrent.get('source') == 'ygg' else \
-                           f"[{torrent.get('tracker_name', 'UNIT3D')}]"
-            
-            size_str = format_size(torrent.get('size', 0))
-            extra_info = parse_torrent_name(torrent.get('name', ''))
-            
-            # Indicateur qBittorrent
-            title = f"📥 {extra_info}\n{torrent.get('name')}\n💾 {size_str} - {source_prefix} [qBittorrent]"
-            
-            import urllib.parse
-            encoded_link = urllib.parse.quote(download_link, safe='')
-            
-            # On passe la config encodée pour avoir accès aux credentials qBittorrent
-            resolve_url = f"{host_url}/{config_str}/resolve/qbit/{clean_hash}?link={encoded_link}"
-            
-            if season is not None and episode is not None:
-                resolve_url += f"&season={season}&episode={episode}"
-            elif stream_type == 'movie':
-                resolve_url += "&type=movie"
+            qbit_added = 0
+            for torrent, clean_hash in uncached_torrents[:limit]:
+                download_link = torrent.get('link') or torrent.get('download_link')
+                if not download_link:
+                    logging.debug(f"Skipping torrent without download link: {torrent.get('name')}")
+                    continue
+                
+                source_prefix = "[Sharewood]" if torrent.get('source') == 'sharewood' else \
+                               "[YGG]" if torrent.get('source') == 'ygg' else \
+                               f"[{torrent.get('tracker_name', 'UNIT3D')}]"
+                
+                size_str = format_size(torrent.get('size', 0))
+                extra_info = parse_torrent_name(torrent.get('name', ''))
+                
+                # Indicateur qBittorrent
+                title = f"📥 {extra_info}\n{torrent.get('name')}\n💾 {size_str} - {source_prefix} [qBittorrent]"
+                
+                import urllib.parse
+                encoded_link = urllib.parse.quote(download_link, safe='')
+                
+                # On passe la config encodée pour avoir accès aux credentials qBittorrent
+                resolve_url = f"{host_url}/{config_str}/resolve/qbit/{clean_hash}?link={encoded_link}"
+                
+                if season is not None and episode is not None:
+                    resolve_url += f"&season={season}&episode={episode}"
+                elif stream_type == 'movie':
+                    resolve_url += "&type=movie"
 
-            streams.append({
-                "name": "Frenchio",
-                "title": title,
-                "url": resolve_url
-            })
-            qbit_added += 1
-        
-        logging.info(f"qBittorrent: Added {qbit_added} streams")
+                streams.append({
+                    "name": "Frenchio",
+                    "title": title,
+                    "url": resolve_url
+                })
+                qbit_added += 1
+            
+            logging.info(f"qBittorrent: Added {qbit_added} streams")
 
     logging.info(f"Returning {len(streams)} streams to Stremio")
     return web.json_response({"streams": streams})

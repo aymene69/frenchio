@@ -3,6 +3,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?logo=docker&logoColor=white)](https://www.docker.com/)
+[![GHCR](https://img.shields.io/badge/ghcr-latest-blue?logo=docker)](https://github.com/aymene69/frenchio/pkgs/container/frenchio)
+[![Build](https://img.shields.io/github/actions/workflow/status/aymene69/frenchio/docker-publish.yml?branch=main)](https://github.com/aymene69/frenchio/actions)
 
 **Frenchio** est un addon Stremio puissant qui permet de rechercher et streamer du contenu depuis plusieurs trackers privés/semi-privés français avec support de débridage AllDebrid et streaming direct via qBittorrent.
 
@@ -41,16 +43,14 @@ Suite à la fermeture de YGG aux services de debrid, cet addon permet de continu
 ### Option 1 : Docker (Recommandé)
 
 ```bash
-# Clone le repository
-git clone https://github.com/aymene69/frenchio.git
-cd frenchio
-
 # Lancement avec Docker Compose
 docker-compose up -d
 
 # Vérifier les logs
 docker logs frenchio-addon -f
 ```
+
+> **Note** : Les images sont disponibles pour **amd64** et **arm64** (Raspberry Pi, Apple Silicon)
 
 L'addon sera accessible sur `http://localhost:7777`
 
