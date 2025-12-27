@@ -23,10 +23,6 @@ COPY . .
 # Expose port
 EXPOSE 7777
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:7777/manifest.json')"
-
 # Run the application
 CMD ["python", "main.py"]
 
