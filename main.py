@@ -159,7 +159,7 @@ async def handle_manifest(request):
 
     manifest = {
         "id": "community.aymene69.frenchio",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "name": addon_name,
         "description": description,
         "icon": "https://i.imgur.com/tVjqEJP.png", # Icône générique ou à changer
