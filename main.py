@@ -30,6 +30,7 @@ import asyncio
 from services.tmdb import TMDBService
 from services.unit3d import Unit3DService
 from services.alldebrid import AllDebridService
+from services.torbox import TorBoxService
 from services.sharewood import SharewoodService
 from services.ygg import YggService
 from services.qbittorrent import QBittorrentService
@@ -51,6 +52,17 @@ if HTTP_PROXY or HTTPS_PROXY:
         logging.info(f"  HTTP_PROXY: {HTTP_PROXY}")
     if HTTPS_PROXY:
         logging.info(f"  HTTPS_PROXY: {HTTPS_PROXY}")
+
+# Configuration des fonctionnalités
+QBITTORRENT_ENABLE = os.getenv('QBITTORRENT_ENABLE', 'true').lower() in ('true', '1', 'yes')
+MANIFEST_TITLE_SUFFIX = os.getenv('MANIFEST_TITLE_SUFFIX', '')
+MANIFEST_BLURB = os.getenv('MANIFEST_BLURB', '')
+
+logging.info(f"qBittorrent enabled: {QBITTORRENT_ENABLE}")
+if MANIFEST_TITLE_SUFFIX:
+    logging.info(f"Manifest title suffix: {MANIFEST_TITLE_SUFFIX}")
+if MANIFEST_BLURB:
+    logging.info(f"Manifest blurb configured")
 
 # ============================================================================
 # Middleware
@@ -109,6 +121,10 @@ async def handle_configure(request):
         # Le plus simple : remplacer une variable placeholder
         content = content.replace('const prefillConfig = {};', f'const prefillConfig = {prefill_data};')
         
+        # Injection de la variable QBITTORRENT_ENABLE
+        qbit_enabled_js = 'true' if QBITTORRENT_ENABLE else 'false'
+        content = content.replace('const qbittorrentEnabled = true;', f'const qbittorrentEnabled = {qbit_enabled_js};')
+        
         return web.Response(text=content, content_type='text/html')
     except Exception as e:
         return web.Response(text=str(e), status=500)
@@ -129,11 +145,21 @@ async def handle_manifest(request):
     if not config:
         return web.Response(status=400, text="Invalid Config")
 
+    # Construction du nom de l'addon avec suffixe optionnel
+    addon_name = "Frenchio"
+    if MANIFEST_TITLE_SUFFIX:
+        addon_name += f" {MANIFEST_TITLE_SUFFIX}"
+    
+    # Construction de la description avec blurb optionnel
+    description = "Stream from French Trackers (UNIT3D, Sharewood, YGG) via AllDebrid, TorBox ou qBittorrent"
+    if MANIFEST_BLURB:
+        description += f"\n\n{MANIFEST_BLURB}"
+
     manifest = {
         "id": "community.aymene69.frenchio",
         "version": "1.0.0",
-        "name": "Frenchio",
-        "description": "Stream from French Trackers (UNIT3D, Sharewood, YGG) via AllDebrid ou qBittorrent",
+        "name": addon_name,
+        "description": description,
         "icon": "https://i.imgur.com/tVjqEJP.png", # Icône générique ou à changer
         "types": ["movie", "series"],
         "catalogs": [],
@@ -171,17 +197,24 @@ async def handle_stream(request):
     # Initialisation des services
     tmdb_service = TMDBService(config['tmdb_key'])
     
-    # AllDebrid optionnel (vérifier que la clé n'est pas vide)
+    # Services de débridage (optionnels)
     alldebrid_service = None
+    torbox_service = None
+    
     if config.get('alldebrid_key') and config['alldebrid_key'].strip():
         alldebrid_service = AllDebridService(config['alldebrid_key'])
         logging.info("AllDebrid service initialized")
-    else:
-        logging.info("AllDebrid not configured, using qBittorrent fallback")
+    
+    if config.get('torbox_key') and config['torbox_key'].strip():
+        torbox_service = TorBoxService(config['torbox_key'])
+        logging.info("TorBox service initialized")
+    
+    if not alldebrid_service and not torbox_service:
+        logging.info("No debrid service configured, using qBittorrent fallback")
     
     # qBittorrent optionnel
     qbit_service = None
-    if config.get('qbittorrent'):
+    if QBITTORRENT_ENABLE and config.get('qbittorrent'):
         qbit_config = config['qbittorrent']
         if qbit_config.get('host') and qbit_config.get('public_url'):
             qbit_service = QBittorrentService(
@@ -199,9 +232,11 @@ async def handle_stream(request):
                 logging.error(f"qBittorrent test failed: {e}")
         else:
             logging.warning("qBittorrent config incomplete, skipping")
+    elif not QBITTORRENT_ENABLE:
+        logging.info("qBittorrent disabled by QBITTORRENT_ENABLE environment variable")
     
     # Vérifier qu'au moins un service est configuré
-    if not alldebrid_service and not qbit_service:
+    if not alldebrid_service and not torbox_service and not qbit_service:
         logging.error("No debrid or torrent client configured!")
         return web.json_response({"streams": []})
     
@@ -360,12 +395,30 @@ async def handle_stream(request):
     streams = []
     host_url = f"{request.scheme}://{request.host}"
     
-    # 3. Check AllDebrid (si configuré)
+    # 3. Check disponibilité sur les services de débridage
     availability = {}
+    debrid_provider = None
+    
     if alldebrid_service:
         hashes = [t['info_hash'] for t in torrents if t.get('info_hash')]
         availability = await alldebrid_service.check_availability(hashes)
+        debrid_provider = "alldebrid"
         logging.info(f"AllDebrid: {len([v for v in availability.values() if v])} cached torrents")
+    
+    elif torbox_service:
+        # TorBox check (en parallèle pour la vitesse)
+        hashes = [t['info_hash'] for t in torrents if t.get('info_hash')]
+        # Effectuer toutes les vérifications en parallèle
+        results = await asyncio.gather(
+            *[torbox_service.check_availability(h) for h in hashes],
+            return_exceptions=True
+        )
+        # Construire le dictionnaire de disponibilité
+        for h, result in zip(hashes, results):
+            if not isinstance(result, Exception) and result:
+                availability[h] = result
+        debrid_provider = "torbox"
+        logging.info(f"TorBox: {len([v for v in availability.values() if v])} cached torrents")
 
     # 4. Générer les streams
     cached_torrents = []
@@ -380,6 +433,9 @@ async def handle_stream(request):
         if alldebrid_service:
             clean_hash = alldebrid_service._clean_hash(info_hash)
             is_cached = availability.get(clean_hash, False)
+        elif torbox_service:
+            clean_hash = info_hash.lower().strip()
+            is_cached = availability.get(clean_hash, False)
         else:
             clean_hash = info_hash.lower().strip()
             is_cached = False
@@ -391,7 +447,7 @@ async def handle_stream(request):
     
     logging.info(f"Cached: {len(cached_torrents)}, Uncached: {len(uncached_torrents)}")
     
-    # 4a. Streams AllDebrid (cachés)
+    # 4a. Streams débridés (cachés)
     for torrent, clean_hash in cached_torrents:
         source_prefix = "[Sharewood]" if torrent.get('source') == 'sharewood' else \
                        "[YGG]" if torrent.get('source') == 'ygg' else \
@@ -400,10 +456,11 @@ async def handle_stream(request):
         size_str = format_size(torrent.get('size', 0))
         extra_info = parse_torrent_name(torrent.get('name', ''))
         
-        title = f"⚡ {extra_info}\n{torrent.get('name')}\n💾 {size_str} - {source_prefix}"
+        provider_emoji = "⚡"  # Éclair pour tous les services de débridage
+        title = f"{provider_emoji} {extra_info}\n{torrent.get('name')}\n💾 {size_str} - {source_prefix}"
         
-        # URL de résolution (on passe la config pour cohérence)
-        resolve_url = f"{host_url}/{config_str}/resolve/alldebrid/{clean_hash}"
+        # URL de résolution (utilise le provider configuré)
+        resolve_url = f"{host_url}/{config_str}/resolve/{debrid_provider}/{clean_hash}"
         
         if season is not None and episode is not None:
             resolve_url += f"?season={season}&episode={episode}"
@@ -422,7 +479,7 @@ async def handle_stream(request):
         if cached_torrents:
             logging.info(f"qBittorrent: Skipping {len(uncached_torrents)} uncached torrents (cached results available)")
         else:
-            limit = 10 if alldebrid_service else 25  # Plus de résultats si pas de debrid
+            limit = 10 if (alldebrid_service or torbox_service) else 25  # Plus de résultats si pas de debrid
             logging.info(f"qBittorrent: Processing {min(len(uncached_torrents), limit)} torrents (out of {len(uncached_torrents)} available)")
             
             qbit_added = 0
@@ -531,7 +588,7 @@ async def handle_resolve(request):
             return web.Response(status=404, text="Could not start qBittorrent stream")
     
     # === MODE AllDebrid ===
-    else:
+    elif service_name == 'alldebrid':
         alldebrid_key = config.get('alldebrid_key')
         if not alldebrid_key:
             return web.Response(status=400, text="AllDebrid not configured")
@@ -549,6 +606,42 @@ async def handle_resolve(request):
             raise web.HTTPFound(stream_url)
         else:
             return web.Response(status=404, text="Could not resolve stream or file not found in torrent")
+    
+    # === MODE TorBox ===
+    elif service_name == 'torbox':
+        logging.info(f"TorBox resolve: Starting with hash={info_hash}, season={season}, episode={episode}")
+        
+        torbox_key = config.get('torbox_key')
+        if not torbox_key:
+            return web.Response(status=400, text="TorBox not configured")
+        
+        debrid_service = TorBoxService(torbox_key)
+        
+        # Construire le magnet à partir du hash
+        magnet_link = f"magnet:?xt=urn:btih:{info_hash}"
+        
+        # Déterminer le type de stream
+        if season and episode:
+            stream_type = "series"
+        else:
+            stream_type = "movie"
+        
+        stream_url = await debrid_service.get_stream_link(
+            magnet_link,
+            stream_type,
+            season=int(season) if season else None,
+            episode=int(episode) if episode else None
+        )
+        
+        if stream_url:
+            logging.info(f"TorBox resolve: Redirecting to: {stream_url}")
+            raise web.HTTPFound(stream_url)
+        else:
+            logging.error(f"TorBox resolve: Failed to get stream URL for hash {info_hash}")
+            return web.Response(status=404, text="Could not resolve TorBox stream")
+    
+    else:
+        return web.Response(status=400, text=f"Unknown service: {service_name}")
 
 async def get_app():
     app = web.Application(middlewares=[cors_middleware])

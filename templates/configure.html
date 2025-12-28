@@ -206,7 +206,7 @@
     <div class="container">
         <header>
             <h1>🇫🇷 Frenchio</h1>
-            <div class="subtitle">Streamer depuis UNIT3D, Sharewood & YGG via AllDebrid ou qBittorrent</div>
+            <div class="subtitle">Streamer depuis UNIT3D, Sharewood & YGG via AllDebrid, TorBox ou qBittorrent</div>
         </header>
         
         <!-- Services Obligatoires -->
@@ -222,14 +222,38 @@
             </div>
 
             <div class="form-group">
+                <label>Service de débridage <span class="badge">Optionnel</span></label>
+                <div style="margin-bottom: 15px;">
+                    <label id="debridNoneLabel" style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px; background: #f8f9fa; border-radius: 8px; margin-bottom: 10px;">
+                        <input type="radio" name="debridService" value="none" id="debridNone" checked>
+                        <span>Aucun (qBittorrent seulement)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px; background: #f8f9fa; border-radius: 8px; margin-bottom: 10px;">
+                        <input type="radio" name="debridService" value="alldebrid" id="debridAlldebrid">
+                        <span>AllDebrid</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                        <input type="radio" name="debridService" value="torbox" id="debridTorbox">
+                        <span>TorBox</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group" id="alldebridKeyGroup" style="display: none;">
                 <label for="alldebridKey">Clé API AllDebrid</label>
                 <input type="text" id="alldebridKey" placeholder="Ex: xYz123...">
                 <span class="help-text">Pour vérifier le cache et débrider les liens. <a href="https://alldebrid.com/apikeys" target="_blank">Obtenir ma clé</a></span>
             </div>
+
+            <div class="form-group" id="torboxKeyGroup" style="display: none;">
+                <label for="torboxKey">Clé API TorBox</label>
+                <input type="text" id="torboxKey" placeholder="Ex: abc123...">
+                <span class="help-text">Alternative à AllDebrid. <a href="https://torbox.app/settings" target="_blank">Obtenir ma clé</a></span>
+            </div>
         </div>
 
         <!-- Optionnel: qBittorrent -->
-        <div class="card">
+        <div class="card" id="qbittorrentSection">
             <div class="card-header">
                 <h2>📥 Client Torrent (qBittorrent) <span class="badge">Optionnel</span></h2>
             </div>
@@ -312,6 +336,7 @@
     <script>
         // Placeholder remplacé par le serveur
         const prefillConfig = {};
+        const qbittorrentEnabled = true;
 
         function addTracker(data = null) {
             const container = document.getElementById('trackersContainer');
@@ -331,10 +356,36 @@
             container.appendChild(div);
         }
 
+        // Gestion des radio buttons pour le service de débridage
+        function updateDebridFields() {
+            const selectedService = document.querySelector('input[name="debridService"]:checked').value;
+            
+            document.getElementById('alldebridKeyGroup').style.display = 
+                selectedService === 'alldebrid' ? 'block' : 'none';
+            document.getElementById('torboxKeyGroup').style.display = 
+                selectedService === 'torbox' ? 'block' : 'none';
+        }
+        
+        document.querySelectorAll('input[name="debridService"]').forEach(radio => {
+            radio.addEventListener('change', updateDebridFields);
+        });
+
         // Chargement initial
         if (prefillConfig && Object.keys(prefillConfig).length > 0) {
             document.getElementById('tmdbKey').value = prefillConfig.tmdb_key || '';
-            document.getElementById('alldebridKey').value = prefillConfig.alldebrid_key || prefillConfig.debrid_key || '';
+            
+            // Détecter quel service est configuré
+            if (prefillConfig.alldebrid_key && prefillConfig.alldebrid_key.trim()) {
+                document.getElementById('debridAlldebrid').checked = true;
+                document.getElementById('alldebridKey').value = prefillConfig.alldebrid_key;
+            } else if (prefillConfig.torbox_key && prefillConfig.torbox_key.trim()) {
+                document.getElementById('debridTorbox').checked = true;
+                document.getElementById('torboxKey').value = prefillConfig.torbox_key;
+            } else {
+                document.getElementById('debridNone').checked = true;
+            }
+            
+            updateDebridFields();
             
             // qBit
             if (prefillConfig.qbittorrent) {
@@ -355,10 +406,49 @@
         } else {
             addTracker();
         }
+        
+        // Masquer la section qBittorrent si désactivée côté serveur
+        if (!qbittorrentEnabled) {
+            const qbitSection = document.getElementById('qbittorrentSection');
+            if (qbitSection) {
+                qbitSection.style.display = 'none';
+            }
+            
+            // Masquer l'option "Aucun (qBittorrent seulement)"
+            const debridNoneLabel = document.getElementById('debridNoneLabel');
+            if (debridNoneLabel) {
+                debridNoneLabel.style.display = 'none';
+            }
+            
+            // Si "Aucun" était sélectionné, sélectionner AllDebrid par défaut
+            const debridNone = document.getElementById('debridNone');
+            if (debridNone && debridNone.checked) {
+                document.getElementById('debridAlldebrid').checked = true;
+                updateDebridFields();
+            }
+        }
 
         function generateLink() {
             const tmdbKey = document.getElementById('tmdbKey').value.trim();
-            const alldebridKey = document.getElementById('alldebridKey').value.trim();
+            
+            // Vérifier quel service de débridage est sélectionné
+            const selectedDebrid = document.querySelector('input[name="debridService"]:checked').value;
+            let alldebridKey = '';
+            let torboxKey = '';
+            
+            if (selectedDebrid === 'alldebrid') {
+                alldebridKey = document.getElementById('alldebridKey').value.trim();
+                if (!alldebridKey) {
+                    alert("Erreur : Veuillez entrer votre clé API AllDebrid.");
+                    return;
+                }
+            } else if (selectedDebrid === 'torbox') {
+                torboxKey = document.getElementById('torboxKey').value.trim();
+                if (!torboxKey) {
+                    alert("Erreur : Veuillez entrer votre clé API TorBox.");
+                    return;
+                }
+            }
             
             // qBit Config
             const qbitUrl = document.getElementById('qbitUrl').value.trim();
@@ -376,8 +466,13 @@
                 return;
             }
             
-            if (!alldebridKey && !hasQbit) {
-                alert("Erreur : Vous devez configurer soit AllDebrid, soit qBittorrent.");
+            if (selectedDebrid === 'none' && !qbittorrentEnabled) {
+                alert("Erreur : qBittorrent est désactivé sur ce serveur. Vous devez configurer un service de débridage (AllDebrid ou TorBox).");
+                return;
+            }
+            
+            if (selectedDebrid === 'none' && !hasQbit) {
+                alert("Erreur : Vous devez configurer soit un service de débridage (AllDebrid/TorBox), soit qBittorrent.");
                 return;
             }
 
@@ -402,6 +497,7 @@
             const config = {
                 tmdb_key: tmdbKey,
                 alldebrid_key: alldebridKey,
+                torbox_key: torboxKey,
                 trackers: trackers,
                 sharewood_passkey: sharewoodPasskey,
                 ygg_passkey: yggPasskey,

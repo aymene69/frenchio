@@ -6,18 +6,18 @@
 [![GHCR](https://img.shields.io/badge/ghcr-latest-blue?logo=docker)](https://github.com/aymene69/frenchio/pkgs/container/frenchio)
 [![Build](https://img.shields.io/github/actions/workflow/status/aymene69/frenchio/docker-publish.yml?branch=main)](https://github.com/aymene69/frenchio/actions)
 
-**Frenchio** est un addon Stremio puissant qui permet de rechercher et streamer du contenu depuis plusieurs trackers privés/semi-privés français avec support de débridage AllDebrid et streaming direct via qBittorrent.
+**Frenchio** est un addon Stremio puissant qui permet de rechercher et streamer du contenu depuis plusieurs trackers privés/semi-privés français avec support de débridage (AllDebrid, TorBox) et streaming direct via qBittorrent.
 
 Suite à la fermeture de YGG aux services de debrid, cet addon permet de continuer à profiter de contenu français de qualité en connectant vos trackers privés préférés directement à Stremio.
 
 ## ✨ Fonctionnalités
 
 - 🔍 **Recherche multi-trackers** : UNIT3D, Sharewood, YGGTorrent
-- ⚡ **AllDebrid Integration** : Streaming instantané des torrents cachés
+- ⚡ **Débridage multi-services** : AllDebrid, TorBox - Streaming instantané des torrents cachés
 - 📥 **qBittorrent Support** : Streaming direct pour les torrents non-cachés
 - 🎯 **Sélection intelligente** : Détection automatique des épisodes dans les packs de saisons
 - 🌐 **Recherche parallèle** : Requêtes simultanées pour des résultats ultra-rapides
-- 🧹 **Auto-cleanup** : Nettoyage automatique des magnets AllDebrid
+- 🧹 **Auto-cleanup** : Nettoyage automatique des magnets
 - 🎨 **Interface moderne** : Page de configuration intuitive
 - 🐳 **Docker Ready** : Déploiement en un clic
 
@@ -35,8 +35,9 @@ Suite à la fermeture de YGG aux services de debrid, cet addon permet de continu
 
 **Choisissez au moins une option** :
 
-1. **AllDebrid** (recommandé) : [Clé API](https://alldebrid.com/apikeys/) - Streaming instantané des torrents cachés
-2. **qBittorrent** : Instance avec WebUI activée - Streaming de tous les torrents
+1. **AllDebrid** : [Clé API](https://alldebrid.com/apikeys/) - Streaming instantané des torrents cachés
+2. **TorBox** : [Clé API](https://torbox.app/settings) - Alternative à AllDebrid avec cache
+3. **qBittorrent** : Instance avec WebUI activée - Streaming de tous les torrents
 
 ## 🚀 Installation
 
@@ -87,8 +88,9 @@ Ouvrez votre navigateur sur : `http://localhost:7777/configure`
 #### TMDB (Obligatoire)
 - **TMDB API Key** : Votre clé API v3 de TheMovieDB
 
-#### AllDebrid (Optionnel - Recommandé)
-- **AllDebrid API Key** : Votre clé API pour le débridage instantané
+#### Services de débridage (Optionnel - Recommandé)
+- **AllDebrid API Key** : Votre clé API pour le débridage instantané - [Obtenir](https://alldebrid.com/apikeys/)
+- **TorBox API Key** : Alternative à AllDebrid - [Obtenir](https://torbox.app/settings)
 
 #### Trackers UNIT3D (Optionnel)
 Ajoutez un ou plusieurs trackers compatibles UNIT3D :
@@ -140,7 +142,7 @@ Frenchio (recherche parallèle)
    ↓
 Résultats filtrés
    ↓
-   ├─→ AllDebrid (si caché) → Stream instantané ⚡
+   ├─→ AllDebrid/TorBox (si caché) → Stream instantané ⚡
    └─→ qBittorrent (sinon) → Stream pendant le DL 📥
 ```
 
@@ -153,7 +155,7 @@ Résultats filtrés
    - Pour les séries : détection du S##E## dans le nom
    - Pour les packs : exploration des fichiers pour trouver le bon épisode
 4. **Débridage/Streaming** :
-   - **AllDebrid** : Si le torrent est caché → streaming instantané
+   - **AllDebrid/TorBox** : Si le torrent est caché → streaming instantané
    - **qBittorrent** : Sinon → ajout avec téléchargement séquentiel
 5. **Nettoyage** : Suppression automatique des magnets temporaires sur AllDebrid
 
@@ -275,6 +277,59 @@ python main.py
 ```
 
 > **Note** : Frenchio utilise les variables standard `HTTP_PROXY`, `HTTPS_PROXY` et `NO_PROXY` (majuscules ou minuscules).
+
+## ⚙️ Variables d'environnement
+
+Frenchio supporte plusieurs variables d'environnement pour personnaliser son comportement :
+
+### QBITTORRENT_ENABLE
+
+Active ou désactive le support de qBittorrent dans l'addon.
+
+```bash
+# Valeur par défaut: true
+QBITTORRENT_ENABLE=true  # Active qBittorrent
+QBITTORRENT_ENABLE=false # Désactive qBittorrent
+```
+
+**Utilité** : Utile pour les hébergeurs qui proposent uniquement le débridage (AllDebrid/TorBox) sans qBittorrent.
+
+### MANIFEST_TITLE_SUFFIX
+
+Ajoute un suffixe personnalisé au nom de l'addon dans Stremio.
+
+```bash
+# Exemple pour ElfHosted
+MANIFEST_TITLE_SUFFIX=| ElfHosted
+
+# Le nom de l'addon sera: "Frenchio | ElfHosted"
+```
+
+**Utilité** : Permet aux hébergeurs de personnaliser le branding de l'addon.
+
+### MANIFEST_BLURB
+
+Ajoute un message HTML/markup personnalisé à la description de l'addon.
+
+```bash
+# Exemple avec HTML
+MANIFEST_BLURB=<b>Hébergé par ElfHosted</b> - Support 24/7
+
+# Exemple texte simple
+MANIFEST_BLURB=Version communautaire - Merci de votre soutien!
+```
+
+**Utilité** : Permet d'afficher des informations supplémentaires, liens de support, etc.
+
+### Exemple complet avec Docker Compose
+
+```yaml
+environment:
+  - PORT=7777
+  - QBITTORRENT_ENABLE=false
+  - MANIFEST_TITLE_SUFFIX=| ElfHosted
+  - MANIFEST_BLURB=<b>Premium hosting by ElfHosted</b> - <a href="https://elfhosted.com/support">Support</a>
+```
 
 ## 🔧 Configuration qBittorrent
 
