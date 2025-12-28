@@ -125,6 +125,10 @@ async def handle_configure(request):
         qbit_enabled_js = 'true' if QBITTORRENT_ENABLE else 'false'
         content = content.replace('const qbittorrentEnabled = true;', f'const qbittorrentEnabled = {qbit_enabled_js};')
         
+        # Injection du blurb personnalisé (échappé pour JavaScript)
+        blurb_escaped = json.dumps(MANIFEST_BLURB) if MANIFEST_BLURB else '""'
+        content = content.replace('const manifestBlurb = "";', f'const manifestBlurb = {blurb_escaped};')
+        
         return web.Response(text=content, content_type='text/html')
     except Exception as e:
         return web.Response(text=str(e), status=500)
@@ -150,10 +154,8 @@ async def handle_manifest(request):
     if MANIFEST_TITLE_SUFFIX:
         addon_name += f" {MANIFEST_TITLE_SUFFIX}"
     
-    # Construction de la description avec blurb optionnel
+    # Description de base (le blurb s'affiche dans la page de config)
     description = "Stream from French Trackers (UNIT3D, Sharewood, YGG) via AllDebrid, TorBox ou qBittorrent"
-    if MANIFEST_BLURB:
-        description += f"\n\n{MANIFEST_BLURB}"
 
     manifest = {
         "id": "community.aymene69.frenchio",

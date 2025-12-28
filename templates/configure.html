@@ -200,6 +200,21 @@
             transform: scale(1.05);
         }
 
+        .info-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(102, 126, 234, 0.2);
+            text-align: center;
+        }
+
+        .info-box a {
+            color: white;
+            text-decoration: underline;
+        }
+
     </style>
 </head>
 <body>
@@ -208,6 +223,9 @@
             <h1>🇫🇷 Frenchio</h1>
             <div class="subtitle">Streamer depuis UNIT3D, Sharewood & YGG via AllDebrid, TorBox ou qBittorrent</div>
         </header>
+        
+        <!-- Blurb personnalisé (caché par défaut) -->
+        <div id="customBlurb" class="info-box" style="display: none;"></div>
         
         <!-- Services Obligatoires -->
         <div class="card">
@@ -334,9 +352,10 @@
     </div>
 
     <script>
-        // Placeholder remplacé par le serveur
+        // Placeholders remplacés par le serveur
         const prefillConfig = {};
         const qbittorrentEnabled = true;
+        const manifestBlurb = "";
 
         function addTracker(data = null) {
             const container = document.getElementById('trackersContainer');
@@ -425,6 +444,15 @@
             if (debridNone && debridNone.checked) {
                 document.getElementById('debridAlldebrid').checked = true;
                 updateDebridFields();
+            }
+        }
+        
+        // Afficher le blurb personnalisé si configuré
+        if (manifestBlurb && manifestBlurb.trim() !== "") {
+            const blurbElement = document.getElementById('customBlurb');
+            if (blurbElement) {
+                blurbElement.innerHTML = manifestBlurb;
+                blurbElement.style.display = 'block';
             }
         }
 
