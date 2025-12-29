@@ -6,6 +6,7 @@
   "initial-version": "1.1.1",
   "bootstrap-sha": "13665a6c8f95a254c1f4eef9c376195e9571cc0a",
   "release-as": "1.1.1",
+  "changelog-type": "github",
   "packages": {
     ".": {
       "package-name": "frenchio",
