@@ -168,7 +168,7 @@ async def handle_manifest(request):
         "version": APP_VERSION,
         "name": addon_name,
         "description": description,
-        "icon": "https://i.imgur.com/tVjqEJP.png", # Icône générique ou à changer
+        "icon": "https://i.imgur.com/MgdGxnR.png", # Icône générique ou à changer
         "types": ["movie", "series"],
         "catalogs": [],
         "resources": ["stream"],
