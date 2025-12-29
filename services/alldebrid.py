@@ -9,7 +9,7 @@ class AllDebridService:
     def __init__(self, api_key):
         self.api_key = api_key
         # On s'assure qu'il n'y a pas de slash final pour éviter les doubles //
-        self.base_url = "https://api.alldebrid.com/v4"
+        self.base_url = "https://api.alldebrid.com/v4.1"
         self.agent = "jackett"
 
     def _clean_hash(self, hash_str):
@@ -30,6 +30,37 @@ class AllDebridService:
                 pass
                 
         return clean
+
+    def _extract_files_recursive(self, entries, path=""):
+        """
+        Extrait récursivement tous les fichiers d'une structure de dossiers AllDebrid.
+        
+        Args:
+            entries: Liste d'entrées (fichiers ou dossiers)
+            path: Chemin du dossier parent (pour logging)
+            
+        Returns:
+            Liste de dicts avec {link, filename, size}
+        """
+        files = []
+        
+        for entry in entries:
+            name = entry.get('n', '')
+            
+            # Si l'entrée a un lien 'l', c'est un fichier
+            if 'l' in entry:
+                files.append({
+                    'link': entry['l'],
+                    'filename': f"{path}/{name}" if path else name,
+                    'size': entry.get('s', 0)
+                })
+            # Si l'entrée a des sous-entrées 'e', c'est un dossier
+            elif 'e' in entry:
+                # Récursion dans le sous-dossier
+                new_path = f"{path}/{name}" if path else name
+                files.extend(self._extract_files_recursive(entry['e'], new_path))
+        
+        return files
 
     async def cleanup(self):
         """
@@ -201,6 +232,7 @@ class AllDebridService:
         """
         # Nettoyage hash
         magnet_hash = self._clean_hash(magnet_hash)
+        logging.info(f"🔓 AD unlock_magnet: hash={magnet_hash}, S{season}E{episode}, type={media_type}")
         
         async with aiohttp.ClientSession(trust_env=True) as session:
             # 1. Upload Magnet
@@ -211,61 +243,119 @@ class AllDebridService:
                 "magnets[]": magnet_hash
             }
             
+            logging.info(f"📤 AD Uploading to {upload_url}")
+            
             try:
                 async with session.post(upload_url, data=params) as resp:
                     data = await resp.json()
+                    logging.info(f"📤 AD Upload response: {json.dumps(data)[:500]}")
                     
                     if data.get('status') != 'success':
-                        logging.error(f"AD Upload Failed: {data}")
+                        logging.error(f"❌ AD Upload Failed: {data}")
                         return None
                     
                     magnets = data.get('data', {}).get('magnets', [])
                     if not magnets:
+                        logging.error(f"❌ AD No magnets in response")
                         return None
                     
                     magnet_info = magnets[0]
                     magnet_id = magnet_info['id']
+                    is_ready = magnet_info.get('ready', False)
+                    has_links = 'links' in magnet_info and magnet_info['links']
+                    
+                    logging.info(f"✅ AD Magnet uploaded: id={magnet_id}, ready={is_ready}, has_links={has_links}")
                     
                     # Si ready, on a les liens
-                    if magnet_info.get('ready') and magnet_info.get('links'):
+                    if is_ready and has_links:
+                        logging.info(f"⚡ AD Instant ready with {len(magnet_info['links'])} links")
                         target_link = self._select_link(magnet_info['links'], season, episode, media_type)
                         if target_link:
-                            return await self._unlock_link(session, target_link)
+                            logging.info(f"🔓 AD Unlocking instant link...")
+                            unlocked = await self._unlock_link(session, target_link)
+                            if unlocked:
+                                logging.info(f"✅ AD Instant unlock successful")
+                            return unlocked
+                        else:
+                            logging.error(f"❌ AD No suitable file selected from instant links")
 
             except Exception as e:
-                logging.error(f"Exception AD Upload: {e}")
+                logging.error(f"❌ Exception AD Upload: {e}")
+                import traceback
+                logging.error(traceback.format_exc())
                 return None
 
-            # 2. Get Status
-            status_url = f"{self.base_url}/magnet/status"
-            params = {
+            # 2. Get Files (l'API v4.1 utilise /magnet/files)
+            logging.info(f"📊 AD Fetching files for magnet_id={magnet_id}")
+            files_url = f"{self.base_url}/magnet/files"
+            
+            # L'API /magnet/files attend un POST avec id[] (peut être un array)
+            post_data = {
                 "agent": self.agent,
                 "apikey": self.api_key,
-                "id": magnet_id
+                "id[]": [magnet_id]
             }
             
             try:
-                async with session.get(status_url, params=params) as resp:
+                async with session.post(files_url, data=post_data) as resp:
                     data = await resp.json()
+                    logging.info(f"📊 AD Files response: {json.dumps(data)[:800]}")
+                    
                     if data.get('status') != 'success':
+                        logging.error(f"❌ AD Files failed: {data}")
                         return None
                     
-                    magnet_data = data.get('data', {}).get('magnets', {})
-                    if isinstance(magnet_data, list):
-                         magnet_data = magnet_data[0]
+                    # L'API retourne data.magnets qui est une liste
+                    magnets_list = data.get('data', {}).get('magnets', [])
+                    if not magnets_list:
+                        logging.error(f"❌ AD No magnets in files response")
+                        return None
                     
-                    links = magnet_data.get('links', [])
+                    # Trouver notre magnet par ID
+                    magnet_data = None
+                    for m in magnets_list:
+                        if str(m.get('id')) == str(magnet_id):
+                            magnet_data = m
+                            break
+                    
+                    if not magnet_data:
+                        logging.error(f"❌ AD Magnet {magnet_id} not found in response")
+                        return None
+                    
+                    # Vérifier si une erreur est retournée pour ce magnet
+                    if 'error' in magnet_data:
+                        logging.error(f"❌ AD Magnet error: {magnet_data['error']}")
+                        return None
+                    
+                    # Extraire récursivement tous les fichiers
+                    files_structure = magnet_data.get('files', [])
+                    if not files_structure:
+                        logging.error(f"❌ AD No files in magnet data")
+                        return None
+                    
+                    links = self._extract_files_recursive(files_structure)
+                    
                     if not links:
+                        logging.error(f"❌ AD No files extracted from structure")
                         return None
                     
+                    logging.info(f"🔗 AD Extracted {len(links)} files from recursive structure")
                     target_link = self._select_link(links, season, episode, media_type)
                     if not target_link:
+                        logging.error(f"❌ AD No suitable file selected")
                         return None
-                        
-                    return await self._unlock_link(session, target_link)
+                    
+                    # Les liens de /magnet/files doivent encore être unlock pour obtenir le lien direct
+                    logging.info(f"🔓 AD Unlocking file link...")
+                    unlocked = await self._unlock_link(session, target_link)
+                    if unlocked:
+                        logging.info(f"✅ AD Unlocked successfully")
+                    return unlocked
                     
             except Exception as e:
-                logging.error(f"Exception AD Status: {e}")
+                logging.error(f"❌ Exception AD Files: {e}")
+                import traceback
+                logging.error(traceback.format_exc())
                 return None
                 
         return None
@@ -273,9 +363,10 @@ class AllDebridService:
     def _select_link(self, links, season, episode, media_type):
         """Sélectionne le bon fichier dans le torrent"""
         if not links:
+            logging.error(f"❌ AD _select_link: No links provided")
             return None
             
-        logging.info(f"Selecting file for S{season}E{episode} among {len(links)} files")
+        logging.info(f"🎯 AD Selecting file for S{season}E{episode} (type={media_type}) among {len(links)} files")
         
         # Si épisode spécifique
         if season is not None and episode is not None:
@@ -315,11 +406,19 @@ class AllDebridService:
             "apikey": self.api_key,
             "link": link
         }
+        logging.info(f"🔐 AD Unlocking link: {link[:80]}...")
         try:
             async with session.get(unlock_url, params=params) as resp:
                 data = await resp.json()
+                logging.info(f"🔐 AD Unlock response: {json.dumps(data)[:300]}")
                 if data.get('status') == 'success':
-                    return data['data']['link']
+                    unlocked = data['data']['link']
+                    logging.info(f"✅ AD Successfully unlocked: {unlocked[:80]}...")
+                    return unlocked
+                else:
+                    logging.error(f"❌ AD Unlock failed: {data}")
         except Exception as e:
-            logging.error(f"Exception AD Unlock: {e}")
+            logging.error(f"❌ Exception AD Unlock: {e}")
+            import traceback
+            logging.error(traceback.format_exc())
         return None

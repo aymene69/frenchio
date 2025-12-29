@@ -16,7 +16,7 @@ Features:
 
 Author: Frenchio Contributors
 License: MIT
-Repository: https://github.com/yourusername/frenchio
+Repository: https://github.com/aymene69/frenchio
 """
 
 import base64
@@ -52,6 +52,9 @@ if HTTP_PROXY or HTTPS_PROXY:
         logging.info(f"  HTTP_PROXY: {HTTP_PROXY}")
     if HTTPS_PROXY:
         logging.info(f"  HTTPS_PROXY: {HTTPS_PROXY}")
+
+# Version de l'application
+APP_VERSION = "1.1.1"
 
 # Configuration des fonctionnalités
 QBITTORRENT_ENABLE = os.getenv('QBITTORRENT_ENABLE', 'true').lower() in ('true', '1', 'yes')
@@ -129,6 +132,9 @@ async def handle_configure(request):
         blurb_escaped = json.dumps(MANIFEST_BLURB) if MANIFEST_BLURB else '""'
         content = content.replace('const manifestBlurb = "";', f'const manifestBlurb = {blurb_escaped};')
         
+        # Injection de la version de l'application
+        content = content.replace('const appVersion = "1.1.0";', f'const appVersion = "{APP_VERSION}";')
+        
         return web.Response(text=content, content_type='text/html')
     except Exception as e:
         return web.Response(text=str(e), status=500)
@@ -159,7 +165,7 @@ async def handle_manifest(request):
 
     manifest = {
         "id": "community.aymene69.frenchio",
-        "version": "1.1.0",
+        "version": APP_VERSION,
         "name": addon_name,
         "description": description,
         "icon": "https://i.imgur.com/tVjqEJP.png", # Icône générique ou à changer
