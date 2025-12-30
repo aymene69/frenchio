@@ -54,7 +54,13 @@ if HTTP_PROXY or HTTPS_PROXY:
         logging.info(f"  HTTPS_PROXY: {HTTPS_PROXY}")
 
 # Version de l'application
-APP_VERSION = "1.1.3"
+APP_VERSION = "1.1.4"
+
+# Stremio Addons Config (signature)
+STREMIO_ADDONS_CONFIG = {
+    "issuer": "https://stremio-addons.net",
+    "signature": "eyJhbGciOiJkaXIiLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0..9l2RL_spVPK81eoy5BUkDg.efNcrE-IQ2DOoYtul30Y1bf3YuCxW8imVaKluLvX2ThwHlgi14rEajndgvRKjVDv57fazbZncm3uySZvqyi_OpQCb5tTHZJcxwD1uhdO5hXDwgSV25T-eOV8tnhnFhNd.0o5__kzn1_ygVSGX7whq3A"
+}
 
 # Configuration des fonctionnalités
 QBITTORRENT_ENABLE = os.getenv('QBITTORRENT_ENABLE', 'true').lower() in ('true', '1', 'yes')
@@ -169,6 +175,7 @@ async def handle_manifest(request):
         "name": addon_name,
         "description": description,
         "icon": "https://i.imgur.com/MgdGxnR.png", # Icône générique ou à changer
+        "stremioAddonsConfig": STREMIO_ADDONS_CONFIG,
         "types": ["movie", "series"],
         "catalogs": [],
         "resources": ["stream"],
@@ -178,6 +185,52 @@ async def handle_manifest(request):
         }
     }
     return web.json_response(manifest)
+
+async def handle_manifest_no_config(request):
+    """
+    Manifest sans configuration (route /manifest.json).
+    Utile quand quelqu'un tente d'installer l'addon sans passer par /configure.
+    """
+    addon_name = "Frenchio"
+    if MANIFEST_TITLE_SUFFIX:
+        addon_name += f" {MANIFEST_TITLE_SUFFIX}"
+
+    description = "Addon non configuré : allez sur /configure pour générer votre lien d'installation."
+
+    manifest = {
+        "id": "community.aymene69.frenchio",
+        "version": APP_VERSION,
+        "name": addon_name,
+        "description": description,
+        "icon": "https://i.imgur.com/MgdGxnR.png",
+        "stremioAddonsConfig": STREMIO_ADDONS_CONFIG,
+        "types": ["movie", "series"],
+        "catalogs": [],
+        # On garde stream pour que Stremio le reconnaisse, mais sans config ça ne renverra rien.
+        "resources": ["stream"],
+        "behaviorHints": {
+            "configurable": True,
+            "configurationRequired": True
+        }
+    }
+    return web.json_response(manifest)
+
+async def handle_stream_no_config(request):
+    """
+    Stream endpoint sans configuration (route /stream/...).
+    On renvoie un stream "informatif" qui pointe vers la page /configure.
+    """
+    host_url = f"{request.scheme}://{request.host}"
+    config_url = f"{host_url}/configure"
+
+    return web.json_response({
+        "streams": [{
+            "name": "Configure l'addon",
+            "title": "⚙️ Configure Frenchio (ouvre la page de configuration)",
+            # Stremio ouvre un navigateur externe au lieu d'essayer de lire une vidéo
+            "externalUrl": config_url
+        }]
+    })
 
 async def handle_stream(request):
     """Gère la recherche de streams"""
@@ -655,6 +708,8 @@ async def get_app():
     app = web.Application(middlewares=[cors_middleware])
     app.router.add_get('/', handle_configure)
     app.router.add_get('/configure', handle_configure)
+    app.router.add_get('/manifest.json', handle_manifest_no_config)
+    app.router.add_get('/stream/{type}/{id}.json', handle_stream_no_config)
     app.router.add_get('/{config}/', handle_configure) # Nouvelle route pour config pré-remplie
     app.router.add_get('/{config}/configure', handle_configure) # Nouvelle route pour config pré-remplie
     app.router.add_get('/{config}/manifest.json', handle_manifest)
