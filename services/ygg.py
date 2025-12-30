@@ -3,7 +3,7 @@ import logging
 import asyncio
 
 class YggService:
-    def __init__(self, passkey, url="https://yggapi.eu"): 
+    def __init__(self, passkey, url="http://89.168.37.159:8888"): 
         # URL par défaut basée sur yggapi.eu (standard pour ces docs), configurable si besoin
         self.passkey = passkey
         self.base_url = url
