@@ -780,8 +780,9 @@
             const baseUrl = window.location.origin.replace(/\/$/, '');
 
             const httpInstallUrl = `${baseUrl}/${configB64}/manifest.json`;
-            // Stremio attend généralement stremio://<url_http(s)>
-            const installUrl = `stremio://${httpInstallUrl}`;
+            // IMPORTANT: Le bouton Stremio doit rester en stremio://<host>/<config>/manifest.json
+            // (pas stremio://https//...)
+            const installUrl = `stremio://${window.location.host}/${configB64}/manifest.json`;
             const configPageUrl = `${baseUrl}/${configB64}/configure`;
 
             const linkDiv = document.getElementById('installLink');
