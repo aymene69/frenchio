@@ -369,6 +369,40 @@
             box-shadow: var(--shadow-lg);
         }
 
+        #extraLinks {
+            text-align: left;
+            margin-top: 18px;
+        }
+
+        .extra-links {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border);
+        }
+
+        .copy-row {
+            margin-top: 14px;
+        }
+
+        .copy-row p {
+            margin: 0 0 6px 0;
+            color: var(--text-secondary);
+        }
+
+        .copy-input {
+            width: 100%;
+            font-size: 0.9em;
+            background: var(--bg-secondary);
+            color: var(--text);
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            padding: 10px 12px;
+        }
+
+        .copy-input:hover {
+            border-color: var(--border-hover);
+        }
+
         .info-box {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
             color: white;
@@ -738,18 +772,16 @@
 
             const configStr = JSON.stringify(config);
             const configB64 = btoa(configStr);
-            
-            let baseUrl = window.location.href;
-            if (baseUrl.includes('/configure')) {
-                baseUrl = baseUrl.split('/configure')[0];
-            } else if (baseUrl.includes('/')) {
-                 baseUrl = window.location.origin;
-            }
-            
-            baseUrl = baseUrl.replace(/\/$/, '');
 
-            const installUrl = `stremio://${window.location.host}/${configB64}/manifest.json`;
+            // IMPORTANT:
+            // - On ne doit PAS réutiliser l'URL courante, car elle peut contenir un /{config}/configure
+            //   (ce qui casserait les liens en les imbriquant).
+            // - Toujours repartir de l'origine visible (proxy/traefik inclus).
+            const baseUrl = window.location.origin.replace(/\/$/, '');
+
             const httpInstallUrl = `${baseUrl}/${configB64}/manifest.json`;
+            // Stremio attend généralement stremio://<url_http(s)>
+            const installUrl = `stremio://${httpInstallUrl}`;
             const configPageUrl = `${baseUrl}/${configB64}/configure`;
 
             const linkDiv = document.getElementById('installLink');
@@ -760,12 +792,16 @@
             linkDiv.style.display = 'block';
             
             extraLinks.innerHTML = `
-                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ccc;">
-                    <p style="margin-bottom: 5px;"><strong>Lien manuel (si le bouton ne marche pas) :</strong></p>
-                    <input type="text" value="${httpInstallUrl}" readonly onclick="this.select()" style="font-size: 0.9em; background: #f1f1f1;">
-                    
-                    <p style="margin-top: 15px; margin-bottom: 5px;"><strong>Lien pour modifier cette configuration plus tard :</strong></p>
-                    <input type="text" value="${configPageUrl}" readonly onclick="this.select()" style="font-size: 0.9em; background: #f1f1f1;">
+                <div class="extra-links">
+                    <div class="copy-row">
+                        <p><strong>Lien manifest (HTTP)</strong> — à copier si besoin :</p>
+                        <input class="copy-input" type="text" value="${httpInstallUrl}" readonly onclick="this.select()">
+                    </div>
+
+                    <div class="copy-row">
+                        <p><strong>Lien pour modifier cette configuration</strong> :</p>
+                        <input class="copy-input" type="text" value="${configPageUrl}" readonly onclick="this.select()">
+                    </div>
                 </div>
             `;
             
