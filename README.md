@@ -6,14 +6,14 @@
 [![GHCR](https://img.shields.io/badge/ghcr-latest-blue?logo=docker)](https://github.com/aymene69/frenchio/pkgs/container/frenchio)
 [![Build](https://img.shields.io/github/actions/workflow/status/aymene69/frenchio/docker-publish.yml?branch=main)](https://github.com/aymene69/frenchio/actions)
 
-**Frenchio** est un addon Stremio puissant qui permet de rechercher et streamer du contenu depuis plusieurs trackers privés/semi-privés français avec support de débridage (AllDebrid, TorBox) et streaming direct via qBittorrent.
+**Frenchio** est un addon Stremio puissant qui permet de rechercher et streamer du contenu depuis plusieurs trackers privés/semi-privés français avec support de débridage (AllDebrid, TorBox, Debrid-Link) et streaming direct via qBittorrent.
 
 Suite à la fermeture de YGG aux services de debrid, cet addon permet de continuer à profiter de contenu français de qualité en connectant vos trackers privés préférés directement à Stremio.
 
 ## ✨ Fonctionnalités
 
-- 🔍 **Recherche multi-trackers** : UNIT3D, Sharewood, YGGTorrent
-- ⚡ **Débridage multi-services** : AllDebrid, TorBox - Streaming instantané des torrents cachés
+- 🔍 **Recherche multi-trackers** : UNIT3D, Sharewood, YGGTorrent, ABNormal
+- ⚡ **Débridage multi-services** : AllDebrid, TorBox, Debrid-Link - Streaming instantané des torrents cachés
 - 📥 **qBittorrent Support** : Streaming direct pour les torrents non-cachés
 - 🎯 **Sélection intelligente** : Détection automatique des épisodes dans les packs de saisons
 - 🌐 **Recherche parallèle** : Requêtes simultanées pour des résultats ultra-rapides
@@ -29,7 +29,8 @@ Suite à la fermeture de YGG aux services de debrid, cet addon permet de continu
 - **Au moins un tracker parmi** :
   - Trackers **UNIT3D** (avec API Token)
   - [Sharewood](https://www.sharewood.tv/) (Passkey)
-  - [YGGTorrent](https://www.ygg.re/) (Passkey via YGGAPI)
+  - [YGGTorrent](https://www.ygg.re/) (Passkey optionnelle, activé par défaut)
+  - [ABNormal](https://abn.lol/) (Username/Password)
 
 ### Options de streaming
 
@@ -37,7 +38,8 @@ Suite à la fermeture de YGG aux services de debrid, cet addon permet de continu
 
 1. **AllDebrid** : [Clé API](https://alldebrid.com/apikeys/) - Streaming instantané des torrents cachés
 2. **TorBox** : [Clé API](https://torbox.app/settings) - Alternative à AllDebrid avec cache
-3. **qBittorrent** : Instance avec WebUI activée - Streaming de tous les torrents
+3. **Debrid-Link** : [Clé API](https://debrid-link.com/webapp/apikey) - Alternative à AllDebrid avec cache
+4. **qBittorrent** : Instance avec WebUI activée - Streaming de tous les torrents
 
 ## 🚀 Installation
 
@@ -91,6 +93,7 @@ Ouvrez votre navigateur sur : `http://localhost:7777/configure`
 #### Services de débridage (Optionnel - Recommandé)
 - **AllDebrid API Key** : Votre clé API pour le débridage instantané - [Obtenir](https://alldebrid.com/apikeys/)
 - **TorBox API Key** : Alternative à AllDebrid - [Obtenir](https://torbox.app/settings)
+- **Debrid-Link API Key** : Alternative à AllDebrid - [Obtenir](https://debrid-link.com/webapp/apikey)
 
 #### Trackers UNIT3D (Optionnel)
 Ajoutez un ou plusieurs trackers compatibles UNIT3D :
@@ -102,10 +105,16 @@ Ajoutez un ou plusieurs trackers compatibles UNIT3D :
 #### Sharewood (Optionnel)
 - **Passkey** : Votre passkey Sharewood (32 caractères)
 
-#### YGGTorrent (Optionnel)
-- **Passkey** : Votre passkey YGG (32 caractères)
+#### YGGTorrent (Activé par défaut)
+- **Passkey** : Votre passkey YGG (32 caractères) - Optionnelle
 
-> **Note** : Même si YGG a fermé l'accès aux services de debrid, vous pouvez toujours utiliser YGG avec qBittorrent pour le streaming direct.
+> **Note** : YGG est activé par défaut même sans passkey. Sans passkey, seuls les torrents cachés sur les services de debrid seront affichés. La passkey est nécessaire uniquement pour télécharger les fichiers .torrent avec qBittorrent.
+
+#### ABNormal (Optionnel)
+- **Username** : Votre nom d'utilisateur ABN
+- **Password** : Votre mot de passe ABN
+
+> **Note** : ABN nécessite plus de processing et peut ralentir les recherches. Recommandé uniquement si vous avez un compte.
 
 #### qBittorrent (Optionnel)
 Configuration pour le streaming direct :
@@ -138,11 +147,12 @@ Stremio
 Frenchio (recherche parallèle)
    ├─→ Trackers UNIT3D
    ├─→ Sharewood
-   └─→ YGGTorrent
+   ├─→ YGGTorrent (toujours actif)
+   └─→ ABNormal
    ↓
 Résultats filtrés
    ↓
-   ├─→ AllDebrid/TorBox (si caché) → Stream instantané ⚡
+   ├─→ AllDebrid/TorBox/Debrid-Link (si caché) → Stream instantané ⚡
    └─→ qBittorrent (sinon) → Stream pendant le DL 📥
 ```
 
@@ -378,7 +388,10 @@ frenchio/
 │   ├── unit3d.py          # Client UNIT3D multi-tracker
 │   ├── sharewood.py       # Client Sharewood API
 │   ├── ygg.py             # Client YGGAPI
+│   ├── abn.py             # Client ABNormal
 │   ├── alldebrid.py       # Service AllDebrid (debrid)
+│   ├── torbox.py          # Service TorBox (debrid)
+│   ├── debridlink.py      # Service Debrid-Link (debrid)
 │   └── qbittorrent.py     # Service qBittorrent (streaming)
 ├── templates/
 │   └── configure.html     # Page de configuration

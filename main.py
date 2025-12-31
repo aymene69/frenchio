@@ -7,7 +7,7 @@ French private/semi-private trackers with AllDebrid integration and qBittorrent
 fallback for non-cached torrents.
 
 Features:
-    - Multi-tracker search (UNIT3D, Sharewood, YGGTorrent)
+    - Multi-tracker search (UNIT3D, Sharewood, YGGTorrent, ABNormal)
     - AllDebrid instant caching detection
     - qBittorrent sequential streaming for non-cached torrents
     - Intelligent episode selection in season packs
@@ -31,8 +31,10 @@ from services.tmdb import TMDBService
 from services.unit3d import Unit3DService
 from services.alldebrid import AllDebridService
 from services.torbox import TorBoxService
+from services.debridlink import DebridLinkService
 from services.sharewood import SharewoodService
 from services.ygg import YggService
+from services.abn import ABNService
 from services.qbittorrent import QBittorrentService
 from utils import format_size, parse_torrent_name, check_season_episode
 
@@ -54,7 +56,7 @@ if HTTP_PROXY or HTTPS_PROXY:
         logging.info(f"  HTTPS_PROXY: {HTTPS_PROXY}")
 
 # Version de l'application
-APP_VERSION = "1.1.4"
+APP_VERSION = "1.2.0"
 
 # Stremio Addons Config (signature)
 STREMIO_ADDONS_CONFIG = {
@@ -167,7 +169,7 @@ async def handle_manifest(request):
         addon_name += f" {MANIFEST_TITLE_SUFFIX}"
     
     # Description de base (le blurb s'affiche dans la page de config)
-    description = "Stream from French Trackers (UNIT3D, Sharewood, YGG) via AllDebrid, TorBox ou qBittorrent"
+    description = "Stream from French Trackers (UNIT3D, Sharewood, YGG, ABN) via AllDebrid, TorBox, DebridLink ou qBittorrent"
 
     manifest = {
         "id": "community.aymene69.frenchio",
@@ -261,6 +263,7 @@ async def handle_stream(request):
     # Services de débridage (optionnels)
     alldebrid_service = None
     torbox_service = None
+    debridlink_service = None
     
     if config.get('alldebrid_key') and config['alldebrid_key'].strip():
         alldebrid_service = AllDebridService(config['alldebrid_key'])
@@ -270,7 +273,11 @@ async def handle_stream(request):
         torbox_service = TorBoxService(config['torbox_key'])
         logging.info("TorBox service initialized")
     
-    if not alldebrid_service and not torbox_service:
+    if config.get('debridlink_key') and config['debridlink_key'].strip():
+        debridlink_service = DebridLinkService(config['debridlink_key'])
+        logging.info("DebridLink service initialized")
+    
+    if not alldebrid_service and not torbox_service and not debridlink_service:
         logging.info("No debrid service configured, using qBittorrent fallback")
     
     # qBittorrent optionnel
@@ -297,7 +304,7 @@ async def handle_stream(request):
         logging.info("qBittorrent disabled by QBITTORRENT_ENABLE environment variable")
     
     # Vérifier qu'au moins un service est configuré
-    if not alldebrid_service and not torbox_service and not qbit_service:
+    if not alldebrid_service and not torbox_service and not debridlink_service and not qbit_service:
         logging.error("No debrid or torrent client configured!")
         return web.json_response({"streams": []})
     
@@ -311,15 +318,18 @@ async def handle_stream(request):
     # Étape 1 : Find by IMDB ID
     tmdb_id = await tmdb_service.get_tmdb_id(imdb_id, stream_type)
     
-    # Étape 1.5 : Récupérer Titre/Année si Sharewood configuré
+    # Étape 1.5 : Récupérer Titre/Année pour les trackers qui en ont besoin
+    # YGG est maintenant toujours actif (avec ou sans passkey), donc on a toujours besoin de media_info
     media_info = None
-    if config.get('sharewood_passkey'):
+    needs_media_info = True  # Toujours true car YGG est toujours actif
+    
+    if needs_media_info:
         # On a besoin des détails pour le titre
         if tmdb_id:
              async with aiohttp.ClientSession(trust_env=True) as session:
                 url = f"https://api.themoviedb.org/3/{'movie' if stream_type == 'movie' else 'tv'}/{tmdb_id}"
                 params = {"api_key": config['tmdb_key'], "language": "fr-FR"} 
-                # Sharewood est FR, donc on force le titre FR
+                # Trackers FR, donc on force le titre FR
                 async with session.get(url, params=params) as resp:
                     if resp.status == 200:
                         media_info = await resp.json()
@@ -367,36 +377,74 @@ async def handle_stream(request):
         async def empty(): return []
         tasks.append(empty())
 
-    # Tâche YGG
-    if config.get('ygg_passkey'):
-        logging.info("Starting YGG search")
-        # URL API par défaut, configurable si besoin via config['ygg_url']
-        ygg_service = YggService(config.get('ygg_passkey'))
+    # Tâche YGG (toujours active, passkey optionnelle)
+    logging.info("Starting YGG search (passkey: {})".format("yes" if config.get('ygg_passkey') else "no - cache only"))
+    # Passkey optionnelle : nécessaire seulement pour télécharger les .torrent (qBittorrent)
+    # Les torrents cachés sur debrid sont accessibles sans passkey
+    ygg_service = YggService(config.get('ygg_passkey'))
+    
+    title = media_info.get('title') if media_info else ""
+    year = ""
+    if media_info:
+        date = media_info.get('release_date') or media_info.get('first_air_date')
+        year = date.split('-')[0] if date else ""
+
+    if stream_type == 'movie':
+        tasks.append(ygg_service.search_movie(title, year, tmdb_id=tmdb_id))
+    elif stream_type == 'series':
+        tasks.append(ygg_service.search_series(title, season, episode, tmdb_id=tmdb_id))
+
+    # Tâche ABN
+    abn_service = None
+    if config.get('abn_username') and config.get('abn_password'):
+        logging.info("Starting ABN search")
+        abn_service = ABNService(
+            username=config.get('abn_username'),
+            password=config.get('abn_password')
+        )
         
-        title = media_info.get('title') if media_info else ""
+        title = media_info.get('title') or media_info.get('name') if media_info else ""
+        original_title = media_info.get('original_title') or media_info.get('original_name') if media_info else ""
         year = ""
         if media_info:
             date = media_info.get('release_date') or media_info.get('first_air_date')
             year = date.split('-')[0] if date else ""
 
         if stream_type == 'movie':
-            tasks.append(ygg_service.search_movie(title, year, tmdb_id=tmdb_id))
+            tasks.append(abn_service.search_movie(title, year, original_title=original_title))
         elif stream_type == 'series':
-            tasks.append(ygg_service.search_series(title, season, episode, tmdb_id=tmdb_id))
+            tasks.append(abn_service.search_series(title, season, episode, original_title=original_title))
     else:
         async def empty(): return []
         tasks.append(empty())
 
     # Exécution
-    results_list = await asyncio.gather(*tasks)
-    unit3d_results = results_list[0]
-    sharewood_results = results_list[1] if len(results_list) > 1 else []
-    ygg_results = results_list[2] if len(results_list) > 2 else []
+    try:
+        results_list = await asyncio.gather(*tasks)
+        unit3d_results = results_list[0]
+        sharewood_results = results_list[1] if len(results_list) > 1 else []
+        ygg_results = results_list[2] if len(results_list) > 2 else []
+        abn_results = results_list[3] if len(results_list) > 3 else []
+    finally:
+        # Fermer la session ABN proprement
+        if abn_service:
+            await abn_service.close()
     
-    logging.info(f"Results breakdown: UNIT3D={len(unit3d_results)}, Sharewood={len(sharewood_results)}, YGG={len(ygg_results)}")
+    logging.info(f"Results breakdown: UNIT3D={len(unit3d_results)}, Sharewood={len(sharewood_results)}, YGG={len(ygg_results)}, ABN={len(abn_results)}")
     
     # Fusion et Déduplication
-    all_torrents = unit3d_results + sharewood_results + ygg_results
+    all_torrents = unit3d_results + sharewood_results + ygg_results + abn_results
+    
+    # Filtrage par taille si configuré
+    max_size_gb = config.get('max_size', 0)
+    if max_size_gb > 0:
+        max_size_bytes = max_size_gb * 1024 * 1024 * 1024  # Conversion Go -> bytes
+        before_filter = len(all_torrents)
+        all_torrents = [t for t in all_torrents if t.get('size', 0) <= max_size_bytes]
+        filtered_count = before_filter - len(all_torrents)
+        if filtered_count > 0:
+            logging.info(f"Filtered {filtered_count} torrents exceeding {max_size_gb} Go")
+    
     unique_torrents = {}
     
     for t in all_torrents:
@@ -421,11 +469,11 @@ async def handle_stream(request):
                     # logging.info(f"Filtered UNIT3D (Wrong IMDB): {t.get('name')} {res_imdb}!={imdb_id}")
                     continue
                 
-            # Si UNIT3D renvoie un résultat sans ID, on vérifie le titre au lieu de jeter
-            if (not res_tmdb or str(res_tmdb) == "0") and (not res_imdb or str(res_imdb) == "0"):
-                 if not is_relevant(t, None, None, ref_title):
-                     # logging.info(f"Filtered UNIT3D (No IDs & Wrong Title): {t.get('name')}")
-                     continue
+            # Si UNIT3D renvoie un résultat sans ID, on l'accepte quand même
+            # (la vérification par titre pourrait être ajoutée ici si nécessaire)
+            # if (not res_tmdb or str(res_tmdb) == "0") and (not res_imdb or str(res_imdb) == "0"):
+            #      # Filtrage par titre si nécessaire
+            #      pass
 
         # Filtrage Série (SxxExx)
         # Si c'est une série, on vérifie que le titre correspond à la saison/épisode demandé
@@ -451,7 +499,7 @@ async def handle_stream(request):
     if not torrents:
         return web.json_response({"streams": []})
 
-    logging.info(f"Total unique torrents (UNIT3D + Sharewood + YGG): {len(torrents)}")
+    logging.info(f"Total unique torrents (UNIT3D + Sharewood + YGG + ABN): {len(torrents)}")
 
     streams = []
     host_url = f"{request.scheme}://{request.host}"
@@ -480,6 +528,13 @@ async def handle_stream(request):
                 availability[h] = result
         debrid_provider = "torbox"
         logging.info(f"TorBox: {len([v for v in availability.values() if v])} cached torrents")
+    
+    elif debridlink_service:
+        # DebridLink check (en parallèle)
+        hashes = [t['info_hash'] for t in torrents if t.get('info_hash')]
+        availability = await debridlink_service.check_availability(hashes)
+        debrid_provider = "debridlink"
+        logging.info(f"DebridLink: {len([v for v in availability.values() if v])} cached torrents")
 
     # 4. Générer les streams
     cached_torrents = []
@@ -497,6 +552,9 @@ async def handle_stream(request):
         elif torbox_service:
             clean_hash = info_hash.lower().strip()
             is_cached = availability.get(clean_hash, False)
+        elif debridlink_service:
+            clean_hash = info_hash.lower().strip()
+            is_cached = availability.get(clean_hash, False)
         else:
             clean_hash = info_hash.lower().strip()
             is_cached = False
@@ -512,6 +570,7 @@ async def handle_stream(request):
     for torrent, clean_hash in cached_torrents:
         source_prefix = "[Sharewood]" if torrent.get('source') == 'sharewood' else \
                        "[YGG]" if torrent.get('source') == 'ygg' else \
+                       "[ABN]" if torrent.get('source') == 'abn' else \
                        f"[{torrent.get('tracker_name', 'UNIT3D')}]"
         
         size_str = format_size(torrent.get('size', 0))
@@ -537,10 +596,19 @@ async def handle_stream(request):
     # 4b. Streams qBittorrent (non cachés, si configuré)
     # Si on a des torrents cachés, on n'affiche pas les non-cachés
     if qbit_service and uncached_torrents:
+        # Filtrer les torrents YGG sans passkey (ne peuvent pas être téléchargés)
+        has_ygg_passkey = config.get('ygg_passkey') and config.get('ygg_passkey').strip()
+        if not has_ygg_passkey:
+            before_filter = len(uncached_torrents)
+            uncached_torrents = [(t, h) for t, h in uncached_torrents if t.get('source') != 'ygg']
+            filtered = before_filter - len(uncached_torrents)
+            if filtered > 0:
+                logging.info(f"qBittorrent: Filtered {filtered} YGG torrents (no passkey for download)")
+        
         if cached_torrents:
             logging.info(f"qBittorrent: Skipping {len(uncached_torrents)} uncached torrents (cached results available)")
         else:
-            limit = 10 if (alldebrid_service or torbox_service) else 25  # Plus de résultats si pas de debrid
+            limit = 10 if (alldebrid_service or torbox_service or debridlink_service) else 25  # Plus de résultats si pas de debrid
             logging.info(f"qBittorrent: Processing {min(len(uncached_torrents), limit)} torrents (out of {len(uncached_torrents)} available)")
             
             qbit_added = 0
@@ -552,6 +620,7 @@ async def handle_stream(request):
                 
                 source_prefix = "[Sharewood]" if torrent.get('source') == 'sharewood' else \
                                "[YGG]" if torrent.get('source') == 'ygg' else \
+                               "[ABN]" if torrent.get('source') == 'abn' else \
                                f"[{torrent.get('tracker_name', 'UNIT3D')}]"
                 
                 size_str = format_size(torrent.get('size', 0))
@@ -624,12 +693,32 @@ async def handle_resolve(request):
         
         # Télécharger le .torrent
         logging.info(f"Downloading torrent from: {download_link[:100]}...")
-        async with aiohttp.ClientSession(trust_env=True) as session:
-            async with session.get(download_link) as resp:
-                if resp.status != 200:
-                    logging.error(f"Failed to download .torrent: {resp.status}")
-                    return web.Response(status=502, text="Failed to download torrent file")
-                torrent_data = await resp.read()
+        
+        # Vérifier si c'est un lien ABN qui nécessite une authentification
+        if 'abn.lol' in download_link or 'abnormal.ws' in download_link:
+            if config.get('abn_username') and config.get('abn_password'):
+                abn_service = ABNService(
+                    username=config.get('abn_username'),
+                    password=config.get('abn_password')
+                )
+                try:
+                    torrent_data = await abn_service.download_torrent(download_link)
+                    if not torrent_data:
+                        logging.error("Failed to download .torrent from ABN")
+                        return web.Response(status=502, text="Failed to download torrent file from ABN")
+                finally:
+                    await abn_service.close()
+            else:
+                logging.error("ABN credentials not configured")
+                return web.Response(status=400, text="ABN credentials required")
+        else:
+            # Téléchargement standard
+            async with aiohttp.ClientSession(trust_env=True) as session:
+                async with session.get(download_link) as resp:
+                    if resp.status != 200:
+                        logging.error(f"Failed to download .torrent: {resp.status}")
+                        return web.Response(status=502, text="Failed to download torrent file")
+                    torrent_data = await resp.read()
         
         logging.info(f"Downloaded {len(torrent_data)} bytes, adding to qBittorrent...")
         
@@ -700,6 +789,30 @@ async def handle_resolve(request):
         else:
             logging.error(f"TorBox resolve: Failed to get stream URL for hash {info_hash}")
             return web.Response(status=404, text="Could not resolve TorBox stream")
+    
+    # === MODE DebridLink ===
+    elif service_name == 'debridlink':
+        logging.info(f"DebridLink resolve: Starting with hash={info_hash}, season={season}, episode={episode}")
+        
+        debridlink_key = config.get('debridlink_key')
+        if not debridlink_key:
+            return web.Response(status=400, text="DebridLink not configured")
+        
+        debrid_service = DebridLinkService(debridlink_key)
+        
+        stream_url = await debrid_service.unlock_magnet(
+            info_hash,
+            season=int(season) if season else None,
+            episode=int(episode) if episode else None,
+            media_type=media_type
+        )
+        
+        if stream_url:
+            logging.info(f"DebridLink resolve: Redirecting to: {stream_url}")
+            raise web.HTTPFound(stream_url)
+        else:
+            logging.error(f"DebridLink resolve: Failed to get stream URL for hash {info_hash}")
+            return web.Response(status=404, text="Could not resolve DebridLink stream")
     
     else:
         return web.Response(status=400, text=f"Unknown service: {service_name}")

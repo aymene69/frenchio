@@ -142,3 +142,6 @@ Caddyfile
 # Logs
 *.log
 logs/
+
+# Debug files
+debug_html/

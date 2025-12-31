@@ -9,7 +9,11 @@ class YggService:
         self.base_url = url
 
     async def download_torrent(self, session, download_url):
-        # YGG nécessite ?passkey=...
+        # YGG nécessite ?passkey=... pour télécharger
+        if not self.passkey:
+            logging.warning("YGG: Cannot download torrent without passkey")
+            return None
+            
         if 'passkey=' not in download_url:
             download_url += f"&passkey={self.passkey}"
             
@@ -24,10 +28,8 @@ class YggService:
     async def search(self, params):
         """
         Recherche générique sur YGG
+        La passkey n'est PAS nécessaire pour la recherche, seulement pour le téléchargement
         """
-        if not self.passkey:
-            return []
-
         search_url = f"{self.base_url}/torrents"
         
         # On log l'appel (sans passkey car elle n'est pas dans l'URL de recherche ici, mais utilisée plus tard)
