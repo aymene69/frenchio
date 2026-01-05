@@ -121,6 +121,14 @@ class Unit3DService:
         if type == 'series' and season is not None and episode is not None:
             pack_params = {'seasonNumber': season}
             params_list.append(pack_params)
+        
+        # 3. Recherche Pack Complet INTEGRALE (sans seasonNumber/episodeNumber)
+        if type == 'series':
+            params_list.append({'name': 'integrale'})
+        
+        # 4. Recherche Pack Complet COMPLETE (sans seasonNumber/episodeNumber)
+        if type == 'series':
+            params_list.append({'name': 'complete'})
 
         async with aiohttp.ClientSession(trust_env=True) as session:
             for tracker in self.trackers:

@@ -109,6 +109,22 @@ class SharewoodService:
                 if res['info_hash'] not in seen_hashes:
                     results.append(res)
                     seen_hashes.add(res['info_hash'])
+        
+        # Pack Complet INTEGRALE
+        q_integrale = f"{title} INTEGRALE"
+        res_list = await self.search(q_integrale)
+        for res in res_list:
+            if res['info_hash'] not in seen_hashes:
+                results.append(res)
+                seen_hashes.add(res['info_hash'])
+        
+        # Pack Complet COMPLETE
+        q_complete = f"{title} COMPLETE"
+        res_list = await self.search(q_complete)
+        for res in res_list:
+            if res['info_hash'] not in seen_hashes:
+                results.append(res)
+                seen_hashes.add(res['info_hash'])
 
         return results
 

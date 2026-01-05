@@ -99,21 +99,40 @@ class YggService:
         return await self.search({"q": q, "category_id": 2145}) # 2145 = Film/Vidéo généralement sur YGG, à vérifier selon l'instance API
 
     async def search_series(self, title, season, episode, tmdb_id=None):
+        results = []
+        
         # Priorité au TMDB ID
         if tmdb_id:
-            # L'API supporte season/episode avec tmdb_id
+            # 1. Recherche avec season/episode
             params = {"tmdb_id": tmdb_id, "type": "tv"}
             if season: params["season"] = season
             if episode: params["episode"] = episode
-            return await self.search(params)
+            results.extend(await self.search(params))
+            
+            # 2. Recherche Pack Complet INTEGRALE (avec tmdb_id, sans season/episode)
+            params_integrale = {"tmdb_id": tmdb_id, "type": "tv", "q": "integrale"}
+            results.extend(await self.search(params_integrale))
+            
+            # 3. Recherche Pack Complet COMPLETE (avec tmdb_id, sans season/episode)
+            params_complete = {"tmdb_id": tmdb_id, "type": "tv", "q": "complete"}
+            results.extend(await self.search(params_complete))
+            
+            return results
             
         # Fallback textuel
-        results = []
         if season is not None and episode is not None:
             s_str = f"S{int(season):02d}"
             e_str = f"E{int(episode):02d}"
             q = f"{title} {s_str}{e_str}"
             results.extend(await self.search({"q": q, "category_id": 2145}))
+        
+        # Recherche Pack Complet INTEGRALE (textuel)
+        q_integrale = f"{title} integrale"
+        results.extend(await self.search({"q": q_integrale, "category_id": 2145}))
+        
+        # Recherche Pack Complet COMPLETE (textuel)
+        q_complete = f"{title} complete"
+        results.extend(await self.search({"q": q_complete, "category_id": 2145}))
         
         return results
 
