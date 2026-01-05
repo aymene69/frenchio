@@ -36,7 +36,7 @@ from services.sharewood import SharewoodService
 from services.ygg import YggService
 from services.abn import ABNService
 from services.qbittorrent import QBittorrentService
-from utils import format_size, parse_torrent_name, check_season_episode
+from utils import format_size, parse_torrent_name, check_season_episode, replace_complete_with_episode
 
 # Configuration du logging
 logging.basicConfig(
@@ -574,10 +574,12 @@ async def handle_stream(request):
                        f"[{torrent.get('tracker_name', 'UNIT3D')}]"
         
         size_str = format_size(torrent.get('size', 0))
-        extra_info = parse_torrent_name(torrent.get('name', ''))
+        # Remplacer INTEGRALE/COMPLETE par SxxExx dans le nom affiché
+        display_name = replace_complete_with_episode(torrent.get('name', ''), season, episode)
+        extra_info = parse_torrent_name(display_name)
         
         provider_emoji = "⚡"  # Éclair pour tous les services de débridage
-        title = f"{provider_emoji} {extra_info}\n{torrent.get('name')}\n💾 {size_str} - {source_prefix}"
+        title = f"{provider_emoji} {extra_info}\n{display_name}\n💾 {size_str} - {source_prefix}"
         
         # URL de résolution (utilise le provider configuré)
         resolve_url = f"{host_url}/{config_str}/resolve/{debrid_provider}/{clean_hash}"
@@ -624,10 +626,12 @@ async def handle_stream(request):
                                f"[{torrent.get('tracker_name', 'UNIT3D')}]"
                 
                 size_str = format_size(torrent.get('size', 0))
-                extra_info = parse_torrent_name(torrent.get('name', ''))
+                # Remplacer INTEGRALE/COMPLETE par SxxExx dans le nom affiché
+                display_name = replace_complete_with_episode(torrent.get('name', ''), season, episode)
+                extra_info = parse_torrent_name(display_name)
                 
                 # Indicateur qBittorrent
-                title = f"📥 {extra_info}\n{torrent.get('name')}\n💾 {size_str} - {source_prefix} [qBittorrent]"
+                title = f"📥 {extra_info}\n{display_name}\n💾 {size_str} - {source_prefix} [qBittorrent]"
                 
                 import urllib.parse
                 encoded_link = urllib.parse.quote(download_link, safe='')

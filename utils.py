@@ -56,6 +56,24 @@ def parse_torrent_name(name):
     
     return " | ".join(title_parts)
 
+def replace_complete_with_episode(name, season, episode):
+    """
+    Remplace 'INTEGRALE' ou 'COMPLETE' dans le nom du torrent par le format SxxExx
+    si une saison et un épisode sont spécifiés.
+    """
+    if season is None or episode is None:
+        return name
+    
+    # Format SxxExx
+    se_format = f"S{int(season):02d}E{int(episode):02d}"
+    
+    # Remplacer INTEGRALE et COMPLETE (insensible à la casse) par SxxExx
+    # On utilise re.sub avec IGNORECASE pour remplacer toutes les variantes
+    result = re.sub(r'\bINTEGRALE\b', se_format, name, flags=re.IGNORECASE)
+    result = re.sub(r'\bCOMPLETE\b', se_format, result, flags=re.IGNORECASE)
+    
+    return result
+
 def check_season_episode(name, target_season, target_episode):
     """
     Vérifie si le torrent correspond à la saison/épisode demandé.
