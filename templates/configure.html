@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="fr">
 
 <head>
@@ -31,411 +32,414 @@
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        [data-theme="dark"] {
-            --primary: #818cf8;
-            --primary-hover: #a5b4fc;
-            --primary-light: #6366f1;
-            --bg: #0f172a;
-            --bg-secondary: #1e293b;
-            --card-bg: #1e293b;
-            --text: #f1f5f9;
-            --text-secondary: #cbd5e1;
-            --text-muted: #94a3b8;
-            --border: #334155;
-            --border-hover: #475569;
-            --success: #34d399;
-            --warning: #fbbf24;
-            --danger: #f87171;
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
+```
+    [data-theme="dark"] {
+        --primary: #818cf8;
+        --primary-hover: #a5b4fc;
+        --primary-light: #6366f1;
+        --bg: #0f172a;
+        --bg-secondary: #1e293b;
+        --card-bg: #1e293b;
+        --text: #f1f5f9;
+        --text-secondary: #cbd5e1;
+        --text-muted: #94a3b8;
+        --border: #334155;
+        --border-hover: #475569;
+        --success: #34d399;
+        --warning: #fbbf24;
+        --danger: #f87171;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(135deg, var(--bg) 0%, var(--bg-secondary) 100%);
+        color: var(--text);
+        margin: 0;
+        padding: 20px;
+        line-height: 1.6;
+        min-height: 100vh;
+        transition: background 0.5s ease, color 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
         }
 
-        * {
-            box-sizing: border-box;
+        to {
+            opacity: 1;
+            transform: translateY(0);
         }
+    }
 
-        html {
-            scroll-behavior: smooth;
-        }
+    .card {
+        animation: fadeIn 0.5s ease-out;
+    }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, var(--bg) 0%, var(--bg-secondary) 100%);
-            color: var(--text);
-            margin: 0;
-            padding: 20px;
-            line-height: 1.6;
-            min-height: 100vh;
-            transition: background 0.5s ease, color 0.3s ease;
-        }
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
+    header {
+        text-align: center;
+        margin-bottom: 48px;
+        position: relative;
+    }
 
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+    h1 {
+        font-size: 2.75rem;
+        margin-bottom: 12px;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        font-weight: 700;
+    }
 
-        .card {
-            animation: fadeIn 0.5s ease-out;
-        }
+    h1 .title-text {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
+    .version-badge {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        color: white;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        box-shadow: var(--shadow-sm);
+    }
 
-        header {
-            text-align: center;
-            margin-bottom: 48px;
-            position: relative;
-        }
+    .subtitle {
+        color: var(--text-muted);
+        font-size: 1.125rem;
+        font-weight: 500;
+    }
 
-        h1 {
-            font-size: 2.75rem;
-            margin-bottom: 12px;
-            color: var(--text);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            flex-wrap: wrap;
-            font-weight: 700;
-        }
+    .card {
+        background: var(--card-bg);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow);
+        padding: 32px;
+        margin-bottom: 24px;
+        border: 1px solid var(--border);
+        transition: var(--transition);
+    }
 
-        h1 .title-text {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
+    .card:hover {
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-2px);
+    }
 
-        .version-badge {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-            color: white;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            box-shadow: var(--shadow-sm);
-        }
+    .card-header {
+        margin-bottom: 24px;
+        border-bottom: 2px solid var(--border);
+        padding-bottom: 16px;
+    }
 
-        .subtitle {
-            color: var(--text-muted);
-            font-size: 1.125rem;
-            font-weight: 500;
-        }
+    h2 {
+        margin: 0;
+        font-size: 1.375rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+        color: var(--text);
+    }
 
-        .card {
-            background: var(--card-bg);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow);
-            padding: 32px;
-            margin-bottom: 24px;
-            border: 1px solid var(--border);
-            transition: var(--transition);
-        }
+    .badge {
+        background: var(--bg-secondary);
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
 
-        .card:hover {
-            box-shadow: var(--shadow-lg);
-            transform: translateY(-2px);
-        }
+    .form-group {
+        margin-bottom: 20px;
+    }
 
-        .card-header {
-            margin-bottom: 24px;
-            border-bottom: 2px solid var(--border);
-            padding-bottom: 16px;
-        }
+    label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: 600;
+        color: var(--text);
+        font-size: 0.9375rem;
+    }
 
-        h2 {
-            margin: 0;
-            font-size: 1.375rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 700;
-            color: var(--text);
-        }
+    .help-text {
+        display: block;
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        margin-top: 6px;
+        line-height: 1.5;
+    }
 
-        .badge {
-            background: var(--bg-secondary);
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+    .help-text a {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 500;
+        transition: var(--transition);
+    }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
+    .help-text a:hover {
+        color: var(--primary-hover);
+        text-decoration: underline;
+    }
 
-        label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: 600;
-            color: var(--text);
-            font-size: 0.9375rem;
-        }
+    input[type="text"],
+    input[type="url"],
+    input[type="password"],
+    input[type="number"],
+    select {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        font-size: 0.9375rem;
+        font-family: 'Inter', sans-serif;
+        background: var(--card-bg);
+        color: var(--text);
+        transition: var(--transition);
+        box-sizing: border-box;
+    }
 
-        .help-text {
-            display: block;
-            font-size: 0.875rem;
-            color: var(--text-muted);
-            margin-top: 6px;
-            line-height: 1.5;
-        }
+    input[type="text"]:hover,
+    input[type="url"]:hover,
+    input[type="password"]:hover,
+    input[type="number"]:hover,
+    select:hover {
+        border-color: var(--border-hover);
+    }
 
-        .help-text a {
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 500;
-            transition: var(--transition);
-        }
+    input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
 
-        .help-text a:hover {
-            color: var(--primary-hover);
-            text-decoration: underline;
-        }
+    [data-theme="dark"] input:focus {
+        box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
+    }
 
-        input[type="text"],
-        input[type="url"],
-        input[type="password"],
-        input[type="number"],
-        select {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius);
-            font-size: 0.9375rem;
-            font-family: 'Inter', sans-serif;
-            background: var(--card-bg);
-            color: var(--text);
-            transition: var(--transition);
-            box-sizing: border-box;
-        }
+    input[type="radio"],
+    input[type="checkbox"] {
+        accent-color: var(--primary);
+        background-color: var(--card-bg);
+    }
 
-        input[type="text"]:hover,
-        input[type="url"]:hover,
-        input[type="password"]:hover,
-        input[type="number"]:hover,
-        select:hover {
-            border-color: var(--border-hover);
-        }
+    .tracker-item {
+        background: var(--bg-secondary);
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        padding: 24px;
+        margin-bottom: 16px;
+        position: relative;
+        transition: var(--transition);
+    }
 
-        input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        }
+    .tracker-item:hover {
+        border-color: var(--border-hover);
+        box-shadow: var(--shadow-sm);
+    }
 
-        [data-theme="dark"] input:focus {
-            box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
-        }
+    .option-tile {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        padding: 12px;
+        background: var(--bg-secondary);
+        border-radius: var(--radius);
+        margin-bottom: 10px;
+        border: 1px solid var(--border);
+        transition: var(--transition);
+    }
 
-        input[type="radio"],
-        input[type="checkbox"] {
-            accent-color: var(--primary);
-            background-color: var(--card-bg);
-        }
+    .option-tile:hover {
+        border-color: var(--border-hover);
+        box-shadow: var(--shadow-sm);
+    }
 
-        .tracker-item {
-            background: var(--bg-secondary);
-            border: 2px solid var(--border);
-            border-radius: var(--radius);
-            padding: 24px;
-            margin-bottom: 16px;
-            position: relative;
-            transition: var(--transition);
-        }
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 14px 28px;
+        border: none;
+        border-radius: var(--radius);
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        font-size: 1rem;
+        font-family: 'Inter', sans-serif;
+        box-shadow: var(--shadow-sm);
+    }
 
-        .tracker-item:hover {
-            border-color: var(--border-hover);
-            box-shadow: var(--shadow-sm);
-        }
+    .btn:active {
+        transform: translateY(0px);
+    }
 
-        .option-tile {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-            padding: 12px;
-            background: var(--bg-secondary);
-            border-radius: var(--radius);
-            margin-bottom: 10px;
-            border: 1px solid var(--border);
-            transition: var(--transition);
-        }
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        color: white;
+        width: 100%;
+        font-size: 1.125rem;
+    }
 
-        .option-tile:hover {
-            border-color: var(--border-hover);
-            box-shadow: var(--shadow-sm);
-        }
+    .btn-primary:hover {
+        box-shadow: var(--shadow);
+        transform: translateY(-2px);
+    }
 
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 14px 28px;
-            border: none;
-            border-radius: var(--radius);
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
-            font-size: 1rem;
-            font-family: 'Inter', sans-serif;
-            box-shadow: var(--shadow-sm);
-        }
+    .btn-outline {
+        background: transparent;
+        border: 2px solid var(--primary);
+        color: var(--primary);
+        width: 100%;
+    }
 
-        .btn:active {
-            transform: translateY(0px);
-        }
+    .btn-outline:hover {
+        background: var(--primary);
+        color: white;
+        box-shadow: var(--shadow);
+    }
 
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-            color: white;
-            width: 100%;
-            font-size: 1.125rem;
-        }
+    .btn-remove {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: var(--danger);
+        color: white;
+        border: none;
+        cursor: pointer;
+        padding: 8px 12px;
+        font-size: 1rem;
+        border-radius: var(--radius);
+        font-weight: 600;
+        transition: var(--transition);
+    }
 
-        .btn-primary:hover {
-            box-shadow: var(--shadow);
-            transform: translateY(-2px);
-        }
+    .btn-remove:hover {
+        transform: scale(1.05);
+        box-shadow: var(--shadow);
+    }
 
-        .btn-outline {
-            background: transparent;
-            border: 2px solid var(--primary);
-            color: var(--primary);
-            width: 100%;
-        }
+    #installLink {
+        display: none;
+        margin-top: 32px;
+        background: var(--card-bg);
+        border: 2px solid var(--primary);
+        padding: 32px;
+        border-radius: var(--radius-lg);
+        text-align: center;
+        box-shadow: var(--shadow-lg);
+    }
 
-        .btn-outline:hover {
-            background: var(--primary);
-            color: white;
-            box-shadow: var(--shadow);
-        }
+    #installLink h3 {
+        color: var(--primary);
+        margin-bottom: 20px;
+        font-size: 1.5rem;
+    }
 
-        .btn-remove {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: var(--danger);
-            color: white;
-            border: none;
-            cursor: pointer;
-            padding: 8px 12px;
-            font-size: 1rem;
-            border-radius: var(--radius);
-            font-weight: 600;
-            transition: var(--transition);
-        }
+    .install-btn {
+        display: inline-block;
+        background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+        color: white;
+        padding: 16px 40px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 1.125rem;
+        transition: var(--transition);
+        box-shadow: var(--shadow);
+        margin: 15px 0;
+    }
 
-        .btn-remove:hover {
-            transform: scale(1.05);
-            box-shadow: var(--shadow);
-        }
+    .install-btn:hover {
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: var(--shadow-lg);
+    }
 
-        #installLink {
-            display: none;
-            margin-top: 32px;
-            background: var(--card-bg);
-            border: 2px solid var(--primary);
-            padding: 32px;
-            border-radius: var(--radius-lg);
-            text-align: center;
-            box-shadow: var(--shadow-lg);
-        }
+    #extraLinks {
+        text-align: left;
+        margin-top: 18px;
+    }
 
-        #installLink h3 {
-            color: var(--primary);
-            margin-bottom: 20px;
-            font-size: 1.5rem;
-        }
+    .extra-links {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid var(--border);
+    }
 
-        .install-btn {
-            display: inline-block;
-            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
-            color: white;
-            padding: 16px 40px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 1.125rem;
-            transition: var(--transition);
-            box-shadow: var(--shadow);
-            margin: 15px 0;
-        }
+    .copy-row {
+        margin-top: 14px;
+    }
 
-        .install-btn:hover {
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: var(--shadow-lg);
-        }
+    .copy-row p {
+        margin: 0 0 6px 0;
+        color: var(--text-secondary);
+    }
 
-        #extraLinks {
-            text-align: left;
-            margin-top: 18px;
-        }
+    .copy-input {
+        width: 100%;
+        font-size: 0.9em;
+        background: var(--bg-secondary);
+        color: var(--text);
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        padding: 10px 12px;
+    }
 
-        .extra-links {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid var(--border);
-        }
+    .copy-input:hover {
+        border-color: var(--border-hover);
+    }
 
-        .copy-row {
-            margin-top: 14px;
-        }
+    .info-box {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        color: white;
+        padding: 24px;
+        border-radius: var(--radius-lg);
+        margin-bottom: 32px;
+        box-shadow: var(--shadow-lg);
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
 
-        .copy-row p {
-            margin: 0 0 6px 0;
-            color: var(--text-secondary);
-        }
+    .info-box a {
+        color: white;
+        text-decoration: underline;
+        font-weight: 600;
+    }
 
-        .copy-input {
-            width: 100%;
-            font-size: 0.9em;
-            background: var(--bg-secondary);
-            color: var(--text);
-            border: 2px solid var(--border);
-            border-radius: var(--radius);
-            padding: 10px 12px;
-        }
+    .info-box a:hover {
+        opacity: 0.9;
+    }
+</style>
+```
 
-        .copy-input:hover {
-            border-color: var(--border-hover);
-        }
-
-        .info-box {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-            color: white;
-            padding: 24px;
-            border-radius: var(--radius-lg);
-            margin-bottom: 32px;
-            box-shadow: var(--shadow-lg);
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .info-box a {
-            color: white;
-            text-decoration: underline;
-            font-weight: 600;
-        }
-
-        .info-box a:hover {
-            opacity: 0.9;
-        }
-    </style>
 </head>
 
 <body>
@@ -447,847 +451,795 @@
                 <span class="version-badge" id="versionBadge"></span>
             </h1>
             <div class="subtitle">Streamer depuis UNIT3D, Sharewood, YGG, ABN, La-Cale, C411 & Torr9 via AllDebrid,
-                TorBox,
-                Debrid-Link ou
-                qBittorrent</div>
+                TorBox, Debrid-Link, Real-Debrid, Premiumize ou qBittorrent</div>
         </header>
 
-        <!-- Blurb personnalisé (caché par défaut) -->
-        <div id="customBlurb" class="info-box" style="display: none;"></div>
+```
+    <!-- Blurb personnalisé (caché par défaut) -->
+    <div id="customBlurb" class="info-box" style="display: none;"></div>
 
-        <!-- Note AIOStreams -->
-        <div class="info-box"
-            style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); margin-bottom: 24px; text-align: left;">
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                <span style="font-size: 1.5rem;">⚠️</span>
-                <h3 style="margin: 0; color: white;">Utilisateurs AIOStreams</h3>
-            </div>
-            <p style="margin: 0; color: white; font-weight: 500;">
-                Si vous intégrez cet addon dans <strong>AIOStreams</strong>, il est fortement recommandé d'augmenter le
-                timeout de l'addon à <strong>25000ms (25s)</strong> dans la configuration AIOStreams.
-                <br>
-                Cela évite que les résultats soient ignorés si les trackers mettent du temps à répondre.
-            </p>
+    <!-- Note AIOStreams -->
+    <div class="info-box"
+        style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); margin-bottom: 24px; text-align: left;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+            <span style="font-size: 1.5rem;">⚠️</span>
+            <h3 style="margin: 0; color: white;">Utilisateurs AIOStreams</h3>
+        </div>
+        <p style="margin: 0; color: white; font-weight: 500;">
+            Si vous intégrez cet addon dans <strong>AIOStreams</strong>, il est fortement recommandé d'augmenter le
+            timeout de l'addon à <strong>25000ms (25s)</strong> dans la configuration AIOStreams.
+            <br>
+            Cela évite que les résultats soient ignorés si les trackers mettent du temps à répondre.
+        </p>
+    </div>
+
+    <!-- Services Obligatoires -->
+    <div class="card">
+        <div class="card-header">
+            <h2>🔑 Services Requis</h2>
         </div>
 
-        <!-- Services Obligatoires -->
-        <div class="card">
-            <div class="card-header">
-                <h2>🔑 Services Requis</h2>
-            </div>
+        <div class="form-group">
+            <label for="tmdbKey">Clé API TMDB (v3)</label>
+            <input type="text" id="tmdbKey" placeholder="Ex: a1b2c3d4...">
+            <span class="help-text">Nécessaire pour récupérer les titres corrects. <a
+                    href="https://www.themoviedb.org/settings/api" target="_blank">Obtenir ma clé</a></span>
+        </div>
 
-            <div class="form-group">
-                <label for="tmdbKey">Clé API TMDB (v3)</label>
-                <input type="text" id="tmdbKey" placeholder="Ex: a1b2c3d4...">
-                <span class="help-text">Nécessaire pour récupérer les titres corrects. <a
-                        href="https://www.themoviedb.org/settings/api" target="_blank">Obtenir ma clé</a></span>
-            </div>
-
-            <div class="form-group">
-                <label>Service de débridage <span class="badge">Optionnel</span></label>
-                <div style="margin-bottom: 15px;">
-                    <label id="debridNoneLabel" class="option-tile">
-                        <input type="radio" name="debridService" value="none" id="debridNone" checked>
-                        <span>Aucun (qBittorrent seulement)</span>
-                    </label>
-                    <label class="option-tile">
-                        <input type="radio" name="debridService" value="alldebrid" id="debridAlldebrid">
-                        <span>AllDebrid</span>
-                    </label>
-                    <label class="option-tile">
-                        <input type="radio" name="debridService" value="torbox" id="debridTorbox">
-                        <span>TorBox</span>
-                    </label>
-                    <label class="option-tile">
-                        <input type="radio" name="debridService" value="debridlink" id="debridDebridlink">
-                        <span>Debrid-Link</span>
-                    </label>
-                    <label class="option-tile">
-                        <input type="radio" name="debridService" value="realdebrid" id="debridRealdebrid">
-                        <span>Real-Debrid</span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="form-group" id="alldebridKeyGroup" style="display: none;">
-                <label for="alldebridKey">Clé API AllDebrid</label>
-                <input type="text" id="alldebridKey" placeholder="Ex: xYz123...">
-                <span class="help-text">Pour vérifier le cache et débrider les liens. <a
-                        href="https://alldebrid.com/apikeys" target="_blank">Obtenir ma clé</a></span>
-            </div>
-
-            <div class="form-group" id="torboxKeyGroup" style="display: none;">
-                <label for="torboxKey">Clé API TorBox</label>
-                <input type="text" id="torboxKey" placeholder="Ex: abc123...">
-                <span class="help-text">Alternative à AllDebrid. <a href="https://torbox.app/settings"
-                        target="_blank">Obtenir ma clé</a></span>
-            </div>
-
-            <div class="form-group" id="debridlinkKeyGroup" style="display: none;">
-                <label for="debridlinkKey">Clé API Debrid-Link</label>
-                <input type="text" id="debridlinkKey" placeholder="Ex: xyz789...">
-                <span class="help-text">Alternative à AllDebrid. <a href="https://debrid-link.com/webapp/apikey"
-                        target="_blank">Obtenir ma clé</a></span>
-            </div>
-
-            <div class="form-group" id="realdebridKeyGroup" style="display: none;">
-                <label for="realdebridKey">Clé API Real-Debrid</label>
-                <input type="text" id="realdebridKey" placeholder="Ex: abc123...">
-                <span class="help-text">Alternative à AllDebrid. <a href="https://real-debrid.com/apitoken"
-                        target="_blank">Obtenir ma clé</a></span>
+        <div class="form-group">
+            <label>Service de débridage <span class="badge">Optionnel</span></label>
+            <div style="margin-bottom: 15px;">
+                <label id="debridNoneLabel" class="option-tile">
+                    <input type="radio" name="debridService" value="none" id="debridNone" checked>
+                    <span>Aucun (qBittorrent seulement)</span>
+                </label>
+                <label class="option-tile">
+                    <input type="radio" name="debridService" value="alldebrid" id="debridAlldebrid">
+                    <span>AllDebrid</span>
+                </label>
+                <label class="option-tile">
+                    <input type="radio" name="debridService" value="torbox" id="debridTorbox">
+                    <span>TorBox</span>
+                </label>
+                <label class="option-tile">
+                    <input type="radio" name="debridService" value="debridlink" id="debridDebridlink">
+                    <span>Debrid-Link</span>
+                </label>
+                <label class="option-tile">
+                    <input type="radio" name="debridService" value="realdebrid" id="debridRealdebrid">
+                    <span>Real-Debrid</span>
+                </label>
+                <label class="option-tile">
+                    <input type="radio" name="debridService" value="premiumize" id="debridPremiumize">
+                    <span>⚡ Premiumize</span>
+                </label>
             </div>
         </div>
 
-        <!-- Optionnel: qBittorrent -->
-        <div class="card" id="qbittorrentSection">
-            <div class="card-header">
-                <h2>📥 Client Torrent (qBittorrent) <span class="badge">Optionnel</span></h2>
-            </div>
-            <p class="help-text">
-                Alternative à AllDebrid : téléchargez directement sur votre serveur/NAS.
-                Nécessite un serveur Web (Nginx/Apache) qui expose le dossier de téléchargement.
-            </p>
-
-            <div class="form-group">
-                <label for="qbitUrl">URL qBittorrent (WebUI)</label>
-                <input type="url" id="qbitUrl" placeholder="http://192.168.1.50:8080">
-            </div>
-
-            <div style="display: flex; gap: 15px;">
-                <div class="form-group" style="flex: 1;">
-                    <label for="qbitUser">Utilisateur</label>
-                    <input type="text" id="qbitUser" placeholder="admin">
-                </div>
-                <div class="form-group" style="flex: 1;">
-                    <label for="qbitPass">Mot de passe</label>
-                    <input type="password" id="qbitPass">
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label for="qbitPublicUrl">URL Publique des Fichiers</label>
-                <input type="url" id="qbitPublicUrl" placeholder="http://monserveur.com/downloads">
-                <span class="help-text">L'adresse HTTP où Stremio pourra lire les fichiers téléchargés.</span>
-            </div>
+        <div class="form-group" id="alldebridKeyGroup" style="display: none;">
+            <label for="alldebridKey">Clé API AllDebrid</label>
+            <input type="text" id="alldebridKey" placeholder="Ex: xYz123...">
+            <span class="help-text">Pour vérifier le cache et débrider les liens. <a
+                    href="https://alldebrid.com/apikeys" target="_blank">Obtenir ma clé</a></span>
         </div>
 
-        <!-- Trackers Semi-Privés/Publics -->
-        <div class="card">
-            <div class="card-header">
-                <h2>🌐 Trackers Publics / Semi-Privés</h2>
-            </div>
-            <p class="help-text" style="margin-bottom: 20px;">
-                <strong>YGG est activé par défaut</strong>, avec ou sans passkey. Cliquez sur un tracker pour le
-                configurer.
-            </p>
-
-            <style>
-                .provider-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-                    gap: 12px;
-                    margin-bottom: 16px;
-                }
-
-                .provider-card {
-                    background: var(--bg-secondary);
-                    border: 2px solid var(--border);
-                    border-radius: var(--radius);
-                    cursor: pointer;
-                    transition: var(--transition);
-                    overflow: hidden;
-                }
-
-                .provider-card:hover {
-                    border-color: var(--border-hover);
-                    box-shadow: var(--shadow-sm);
-                }
-
-                .provider-card.active {
-                    border-color: var(--primary);
-                    background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(129, 140, 248, 0.08) 100%);
-                }
-
-                [data-theme="dark"] .provider-card.active {
-                    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(129, 140, 248, 0.1) 100%);
-                }
-
-                .provider-header {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    padding: 14px 16px;
-                }
-
-                .provider-header .provider-name {
-                    font-weight: 600;
-                    font-size: 0.9375rem;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                }
-
-                .provider-header .provider-dot {
-                    width: 8px;
-                    height: 8px;
-                    border-radius: 50%;
-                    background: var(--border);
-                    transition: var(--transition);
-                    flex-shrink: 0;
-                }
-
-                .provider-card.active .provider-dot {
-                    background: var(--success);
-                    box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);
-                }
-
-                .provider-header .provider-chevron {
-                    font-size: 0.75rem;
-                    color: var(--text-muted);
-                    transition: transform 0.3s ease;
-                }
-
-                .provider-card.expanded .provider-chevron {
-                    transform: rotate(180deg);
-                }
-
-                .provider-body {
-                    max-height: 0;
-                    overflow: hidden;
-                    transition: max-height 0.35s ease, padding 0.35s ease;
-                    padding: 0 16px;
-                }
-
-                .provider-card.expanded .provider-body {
-                    max-height: 300px;
-                    padding: 0 16px 16px 16px;
-                }
-
-                .provider-body .form-group {
-                    margin-bottom: 12px;
-                }
-
-                .provider-body .form-group:last-child {
-                    margin-bottom: 0;
-                }
-
-                .provider-body label {
-                    font-size: 0.8125rem;
-                    margin-bottom: 6px;
-                }
-
-                .provider-badge {
-                    font-size: 0.6875rem;
-                    padding: 2px 6px;
-                    border-radius: 4px;
-                    background: var(--primary);
-                    color: white;
-                    font-weight: 600;
-                    letter-spacing: 0.3px;
-                }
-
-                .provider-badge.always-on {
-                    background: var(--success);
-                }
-            </style>
-
-            <div class="provider-grid">
-                <!-- YGG -->
-                <div class="provider-card active" id="providerYgg">
-                    <div class="provider-header">
-                        <span class="provider-name">
-                            <span class="provider-dot"></span>
-                            YGG <span class="provider-badge always-on">ACTIF</span>
-                        </span>
-                    </div>
-                </div>
-
-                <!-- Sharewood -->
-                <div class="provider-card" id="providerSharewood" onclick="toggleProvider('providerSharewood')">
-                    <div class="provider-header">
-                        <span class="provider-name">
-                            <span class="provider-dot"></span>
-                            Sharewood
-                        </span>
-                        <span class="provider-chevron">▼</span>
-                    </div>
-                    <div class="provider-body">
-                        <div class="form-group">
-                            <label for="sharewoodPasskey">Passkey</label>
-                            <input type="text" id="sharewoodPasskey" placeholder="32 caractères"
-                                onclick="event.stopPropagation()">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ABN -->
-                <div class="provider-card" id="providerAbn" onclick="toggleProvider('providerAbn')">
-                    <div class="provider-header">
-                        <span class="provider-name">
-                            <span class="provider-dot"></span>
-                            ABN
-                        </span>
-                        <span class="provider-chevron">▼</span>
-                    </div>
-                    <div class="provider-body">
-                        <div class="form-group">
-                            <label for="abnUsername">Identifiant</label>
-                            <input type="text" id="abnUsername" placeholder="Nom d'utilisateur"
-                                onclick="event.stopPropagation()">
-                        </div>
-                        <div class="form-group">
-                            <label for="abnPassword">Mot de passe</label>
-                            <input type="password" id="abnPassword" placeholder="Mot de passe"
-                                onclick="event.stopPropagation()">
-                        </div>
-                        <span class="help-text">⚠️ ABN ralentit les recherches.</span>
-                    </div>
-                </div>
-
-                <!-- La-Cale -->
-                <div class="provider-card" id="providerLacale" onclick="toggleProvider('providerLacale')">
-                    <div class="provider-header">
-                        <span class="provider-name">
-                            <span class="provider-dot"></span>
-                            La-Cale
-                        </span>
-                        <span class="provider-chevron">▼</span>
-                    </div>
-                    <div class="provider-body">
-                        <div class="form-group">
-                            <label for="lacaleApikey">Clé API</label>
-                            <input type="text" id="lacaleApikey" placeholder="Clé API"
-                                onclick="event.stopPropagation()">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- C411 -->
-                <div class="provider-card" id="providerC411" onclick="toggleProvider('providerC411')">
-                    <div class="provider-header">
-                        <span class="provider-name">
-                            <span class="provider-dot"></span>
-                            C411
-                        </span>
-                        <span class="provider-chevron">▼</span>
-                    </div>
-                    <div class="provider-body">
-                        <div class="form-group">
-                            <label for="c411Apikey">Clé API</label>
-                            <input type="text" id="c411Apikey" placeholder="Clé API" onclick="event.stopPropagation()">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Torr9 -->
-                <div class="provider-card" id="providerTorr9" onclick="toggleProvider('providerTorr9')">
-                    <div class="provider-header">
-                        <span class="provider-name">
-                            <span class="provider-dot"></span>
-                            Torr9
-                        </span>
-                        <span class="provider-chevron">▼</span>
-                    </div>
-                    <div class="provider-body">
-                        <div class="form-group">
-                            <label for="torr9Passkey">Passkey</label>
-                            <input type="text" id="torr9Passkey" placeholder="Passkey"
-                                onclick="event.stopPropagation()">
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="form-group" id="torboxKeyGroup" style="display: none;">
+            <label for="torboxKey">Clé API TorBox</label>
+            <input type="text" id="torboxKey" placeholder="Ex: abc123...">
+            <span class="help-text">Alternative à AllDebrid. <a href="https://torbox.app/settings"
+                    target="_blank">Obtenir ma clé</a></span>
         </div>
 
-        <!-- Trackers UNIT3D -->
-        <div class="card">
-            <div class="card-header">
-                <h2>🔒 Trackers UNIT3D (Privés) <span class="badge">Recommandé</span></h2>
-            </div>
-
-            <p class="help-text" style="margin-bottom: 20px;">
-                Ajoutez ici vos trackers basés sur le moteur UNIT3D. UNIT3D est une plateforme de tracker BitTorrent
-                utilisée par de nombreux trackers privés français.
-                L'URL doit être la racine du site (https://site.com). Le token API se génère dans vos paramètres de
-                profil sur le site.
-            </p>
-
-            <div id="trackersContainer">
-                <!-- Les trackers seront ajoutés ici -->
-            </div>
-
-            <button type="button" class="btn btn-outline" onclick="addTracker()">+ Ajouter un Tracker
-                UNIT3D</button>
+        <div class="form-group" id="debridlinkKeyGroup" style="display: none;">
+            <label for="debridlinkKey">Clé API Debrid-Link</label>
+            <input type="text" id="debridlinkKey" placeholder="Ex: xyz789...">
+            <span class="help-text">Alternative à AllDebrid. <a href="https://debrid-link.com/webapp/apikey"
+                    target="_blank">Obtenir ma clé</a></span>
         </div>
 
-        <!-- Filtres -->
-        <div class="card">
-            <div class="card-header">
-                <h2>⚙️ Filtres <span class="badge">Optionnel</span></h2>
-            </div>
-
-            <div class="form-group">
-                <label for="maxSize">Taille maximale des torrents (Go)</label>
-                <input type="number" id="maxSize" placeholder="50" value="50" min="0" step="1">
-                <span class="help-text">Limite en Go (0 = aucune limite). Filtrer les torrents trop volumineux pour
-                    économiser de la bande passante.</span>
-            </div>
-
-            <div class="form-group">
-                <label for="sortBy">Trier les résultats par</label>
-                <select id="sortBy">
-                    <option value="tracker_priority">Priorité des Trackers</option>
-                    <option value="size_asc">Taille (Croissante ⬇️)</option>
-                    <option value="size_desc">Taille (Décroissante ⬆️)</option>
-                </select>
-                <span class="help-text">Choisissez comment les torrents trouvés doivent être ordonnés (les sources
-                    débridées restent toujours en premier). L'ordre par Tracker utilisera le drag & drop
-                    ci-dessous.</span>
-            </div>
+        <div class="form-group" id="realdebridKeyGroup" style="display: none;">
+            <label for="realdebridKey">Clé API Real-Debrid</label>
+            <input type="text" id="realdebridKey" placeholder="Ex: abc123...">
+            <span class="help-text">Alternative à AllDebrid. <a href="https://real-debrid.com/apitoken"
+                    target="_blank">Obtenir ma clé</a></span>
         </div>
 
-        <!-- Ordre de priorité -->
-        <div class="card">
-            <div class="card-header">
-                <h2>↕️ Ordre d'affichage des Trackers</h2>
-            </div>
-            <p class="help-text" style="margin-bottom: 20px;">
-                Glissez-déposez les éléments ci-dessous pour définir l'ordre dans lequel les résultats apparaîtront
-                dans
-                Stremio.
-            </p>
-
-            <style>
-                .sortable-list {
-                    list-style: none;
-                    padding: 0;
-                    margin: 0;
-                }
-
-                .sortable-item {
-                    display: flex;
-                    align-items: center;
-                    background: var(--bg-secondary);
-                    border: 2px solid var(--border);
-                    border-radius: var(--radius);
-                    padding: 12px 16px;
-                    margin-bottom: 8px;
-                    cursor: grab;
-                    font-weight: 600;
-                    transition: var(--transition);
-                }
-
-                .sortable-item:active {
-                    cursor: grabbing;
-                }
-
-                .sortable-item:hover {
-                    border-color: var(--primary-light);
-                }
-
-                .sortable-item.sortable-ghost {
-                    opacity: 0.4;
-                    background: var(--bg);
-                }
-
-                .drag-handle {
-                    margin-right: 12px;
-                    color: var(--text-muted);
-                    font-size: 1.2rem;
-                }
-            </style>
-
-            <ul id="trackerOrderList" class="sortable-list">
-                <li class="sortable-item" data-id="unit3d"><span class="drag-handle">≡</span> 🔒 Tous les Trackers
-                    UNIT3D</li>
-                <li class="sortable-item" data-id="ygg"><span class="drag-handle">≡</span> 🐝 YGG</li>
-                <li class="sortable-item" data-id="sharewood"><span class="drag-handle">≡</span> 🌲 Sharewood</li>
-                <li class="sortable-item" data-id="torr9"><span class="drag-handle">≡</span> 🔥 Torr9</li>
-                <li class="sortable-item" data-id="abn"><span class="drag-handle">≡</span> 🎬 ABN</li>
-                <li class="sortable-item" data-id="c411"><span class="drag-handle">≡</span> 📡 C411</li>
-                <li class="sortable-item" data-id="lacale"><span class="drag-handle">≡</span> ⚓ La-Cale</li>
-            </ul>
-        </div>
-
-        <div style="text-align: center; margin-top: 40px;">
-            <button type="button" class="btn btn-primary" onclick="generateLink()">🚀 Générer et Installer</button>
-        </div>
-
-        <div id="installLink">
-            <h3>Configuration prête !</h3>
-            <a href="#" id="stremioLink" class="install-btn">Installer sur Stremio</a>
-            <div id="extraLinks"></div>
+        <div class="form-group" id="premiumizeKeyGroup" style="display: none;">
+            <label for="premiumizeKey">Clé API Premiumize</label>
+            <input type="text" id="premiumizeKey" placeholder="Ex: abc123...">
+            <span class="help-text">Trouvable sur <a href="https://www.premiumize.me/account" target="_blank">premiumize.me</a> → Settings → API Key</span>
         </div>
     </div>
 
-    <script>
-        // Appliquer automatiquement le thème selon la préférence système
-        (function autoTheme() {
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
-            const applyTheme = () => {
-                document.documentElement.setAttribute('data-theme', prefersDark.matches ? 'dark' : 'light');
-            };
-            applyTheme();
-            prefersDark.addEventListener('change', applyTheme);
-        })();
+    <!-- Optionnel: qBittorrent -->
+    <div class="card" id="qbittorrentSection">
+        <div class="card-header">
+            <h2>📥 Client Torrent (qBittorrent) <span class="badge">Optionnel</span></h2>
+        </div>
+        <p class="help-text">
+            Alternative à AllDebrid : téléchargez directement sur votre serveur/NAS.
+            Nécessite un serveur Web (Nginx/Apache) qui expose le dossier de téléchargement.
+        </p>
 
-        // Placeholders remplacés par le serveur
-        const prefillConfig = {};
-        const qbittorrentEnabled = true;
-        const manifestBlurb = "";
-        const appVersion = "1.1.0";
+        <div class="form-group">
+            <label for="qbitUrl">URL qBittorrent (WebUI)</label>
+            <input type="url" id="qbitUrl" placeholder="http://192.168.1.50:8080">
+        </div>
 
-        function addTracker(data = null) {
-            const container = document.getElementById('trackersContainer');
-            const div = document.createElement('div');
-            div.className = 'tracker-item';
-            div.innerHTML = `
-                <button type="button" class="btn-remove" onclick="this.parentElement.remove()" title="Supprimer">×</button>
-                <div class="form-group">
-                    <label>URL du Tracker</label>
-                    <input type="url" class="tracker-url" placeholder="https://votre-tracker-unit3d.com" value="${data ? data.url : ''}">
+        <div style="display: flex; gap: 15px;">
+            <div class="form-group" style="flex: 1;">
+                <label for="qbitUser">Utilisateur</label>
+                <input type="text" id="qbitUser" placeholder="admin">
+            </div>
+            <div class="form-group" style="flex: 1;">
+                <label for="qbitPass">Mot de passe</label>
+                <input type="password" id="qbitPass">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="qbitPublicUrl">URL Publique des Fichiers</label>
+            <input type="url" id="qbitPublicUrl" placeholder="http://monserveur.com/downloads">
+            <span class="help-text">L'adresse HTTP où Stremio pourra lire les fichiers téléchargés.</span>
+        </div>
+    </div>
+
+    <!-- Trackers Semi-Privés/Publics -->
+    <div class="card">
+        <div class="card-header">
+            <h2>🌐 Trackers Publics / Semi-Privés</h2>
+        </div>
+        <p class="help-text" style="margin-bottom: 20px;">
+            <strong>YGG est activé par défaut</strong>, avec ou sans passkey. Cliquez sur un tracker pour le
+            configurer.
+        </p>
+
+        <style>
+            .provider-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+                gap: 12px;
+                margin-bottom: 16px;
+            }
+
+            .provider-card {
+                background: var(--bg-secondary);
+                border: 2px solid var(--border);
+                border-radius: var(--radius);
+                cursor: pointer;
+                transition: var(--transition);
+                overflow: hidden;
+            }
+
+            .provider-card:hover {
+                border-color: var(--border-hover);
+                box-shadow: var(--shadow-sm);
+            }
+
+            .provider-card.active {
+                border-color: var(--primary);
+                background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(129, 140, 248, 0.08) 100%);
+            }
+
+            [data-theme="dark"] .provider-card.active {
+                background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(129, 140, 248, 0.1) 100%);
+            }
+
+            .provider-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 14px 16px;
+            }
+
+            .provider-header .provider-name {
+                font-weight: 600;
+                font-size: 0.9375rem;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .provider-header .provider-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: var(--border);
+                transition: var(--transition);
+                flex-shrink: 0;
+            }
+
+            .provider-card.active .provider-dot {
+                background: var(--success);
+                box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);
+            }
+
+            .provider-header .provider-chevron {
+                font-size: 0.75rem;
+                color: var(--text-muted);
+                transition: transform 0.3s ease;
+            }
+
+            .provider-card.expanded .provider-chevron {
+                transform: rotate(180deg);
+            }
+
+            .provider-body {
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.35s ease, padding 0.35s ease;
+                padding: 0 16px;
+            }
+
+            .provider-card.expanded .provider-body {
+                max-height: 300px;
+                padding: 0 16px 16px 16px;
+            }
+
+            .provider-body .form-group {
+                margin-bottom: 12px;
+            }
+
+            .provider-body .form-group:last-child {
+                margin-bottom: 0;
+            }
+
+            .provider-body label {
+                font-size: 0.8125rem;
+                margin-bottom: 6px;
+            }
+
+            .provider-badge {
+                font-size: 0.6875rem;
+                padding: 2px 6px;
+                border-radius: 4px;
+                background: var(--primary);
+                color: white;
+                font-weight: 600;
+                letter-spacing: 0.3px;
+            }
+
+            .provider-badge.always-on {
+                background: var(--success);
+            }
+        </style>
+
+        <div class="provider-grid">
+            <!-- YGG -->
+            <div class="provider-card active" id="providerYgg">
+                <div class="provider-header">
+                    <span class="provider-name">
+                        <span class="provider-dot"></span>
+                        YGG <span class="provider-badge always-on">ACTIF</span>
+                    </span>
                 </div>
-                <div class="form-group">
-                    <label>Token API</label>
-                    <input type="text" class="tracker-token" placeholder="Votre API Token personnel" value="${data ? data.token : ''}">
-                </div>
-            `;
-            container.appendChild(div);
-        }
+            </div>
 
-        function toggleProvider(cardId) {
+            <!-- Sharewood -->
+            <div class="provider-card" id="providerSharewood" onclick="toggleProvider('providerSharewood')">
+                <div class="provider-header">
+                    <span class="provider-name">
+                        <span class="provider-dot"></span>
+                        Sharewood
+                    </span>
+                    <span class="provider-chevron">▼</span>
+                </div>
+                <div class="provider-body">
+                    <div class="form-group">
+                        <label for="sharewoodPasskey">Passkey</label>
+                        <input type="text" id="sharewoodPasskey" placeholder="32 caractères"
+                            onclick="event.stopPropagation()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ABN -->
+            <div class="provider-card" id="providerAbn" onclick="toggleProvider('providerAbn')">
+                <div class="provider-header">
+                    <span class="provider-name">
+                        <span class="provider-dot"></span>
+                        ABN
+                    </span>
+                    <span class="provider-chevron">▼</span>
+                </div>
+                <div class="provider-body">
+                    <div class="form-group">
+                        <label for="abnUsername">Identifiant</label>
+                        <input type="text" id="abnUsername" placeholder="Nom d'utilisateur"
+                            onclick="event.stopPropagation()">
+                    </div>
+                    <div class="form-group">
+                        <label for="abnPassword">Mot de passe</label>
+                        <input type="password" id="abnPassword" placeholder="Mot de passe"
+                            onclick="event.stopPropagation()">
+                    </div>
+                    <span class="help-text">⚠️ ABN ralentit les recherches.</span>
+                </div>
+            </div>
+
+            <!-- La-Cale -->
+            <div class="provider-card" id="providerLacale" onclick="toggleProvider('providerLacale')">
+                <div class="provider-header">
+                    <span class="provider-name">
+                        <span class="provider-dot"></span>
+                        La-Cale
+                    </span>
+                    <span class="provider-chevron">▼</span>
+                </div>
+                <div class="provider-body">
+                    <div class="form-group">
+                        <label for="lacaleApikey">Clé API</label>
+                        <input type="text" id="lacaleApikey" placeholder="Clé API"
+                            onclick="event.stopPropagation()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- C411 -->
+            <div class="provider-card" id="providerC411" onclick="toggleProvider('providerC411')">
+                <div class="provider-header">
+                    <span class="provider-name">
+                        <span class="provider-dot"></span>
+                        C411
+                    </span>
+                    <span class="provider-chevron">▼</span>
+                </div>
+                <div class="provider-body">
+                    <div class="form-group">
+                        <label for="c411Apikey">Clé API</label>
+                        <input type="text" id="c411Apikey" placeholder="Clé API" onclick="event.stopPropagation()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Torr9 -->
+            <div class="provider-card" id="providerTorr9" onclick="toggleProvider('providerTorr9')">
+                <div class="provider-header">
+                    <span class="provider-name">
+                        <span class="provider-dot"></span>
+                        Torr9
+                    </span>
+                    <span class="provider-chevron">▼</span>
+                </div>
+                <div class="provider-body">
+                    <div class="form-group">
+                        <label for="torr9Passkey">Passkey</label>
+                        <input type="text" id="torr9Passkey" placeholder="Passkey"
+                            onclick="event.stopPropagation()">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trackers UNIT3D -->
+    <div class="card">
+        <div class="card-header">
+            <h2>🔒 Trackers UNIT3D (Privés) <span class="badge">Recommandé</span></h2>
+        </div>
+
+        <p class="help-text" style="margin-bottom: 20px;">
+            Ajoutez ici vos trackers basés sur le moteur UNIT3D. UNIT3D est une plateforme de tracker BitTorrent
+            utilisée par de nombreux trackers privés français.
+            L'URL doit être la racine du site (https://site.com). Le token API se génère dans vos paramètres de
+            profil sur le site.
+        </p>
+
+        <div id="trackersContainer"></div>
+
+        <button type="button" class="btn btn-outline" onclick="addTracker()">+ Ajouter un Tracker UNIT3D</button>
+    </div>
+
+    <!-- Filtres -->
+    <div class="card">
+        <div class="card-header">
+            <h2>⚙️ Filtres <span class="badge">Optionnel</span></h2>
+        </div>
+
+        <div class="form-group">
+            <label for="maxSize">Taille maximale des torrents (Go)</label>
+            <input type="number" id="maxSize" placeholder="50" value="50" min="0" step="1">
+            <span class="help-text">Limite en Go (0 = aucune limite). Filtrer les torrents trop volumineux pour
+                économiser de la bande passante.</span>
+        </div>
+
+        <div class="form-group">
+            <label for="sortBy">Trier les résultats par</label>
+            <select id="sortBy">
+                <option value="tracker_priority">Priorité des Trackers</option>
+                <option value="size_asc">Taille (Croissante ⬇️)</option>
+                <option value="size_desc">Taille (Décroissante ⬆️)</option>
+            </select>
+            <span class="help-text">Choisissez comment les torrents trouvés doivent être ordonnés.</span>
+        </div>
+    </div>
+
+    <!-- Ordre de priorité -->
+    <div class="card">
+        <div class="card-header">
+            <h2>↕️ Ordre d'affichage des Trackers</h2>
+        </div>
+        <p class="help-text" style="margin-bottom: 20px;">
+            Glissez-déposez les éléments ci-dessous pour définir l'ordre dans lequel les résultats apparaîtront
+            dans Stremio.
+        </p>
+
+        <style>
+            .sortable-list {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+
+            .sortable-item {
+                display: flex;
+                align-items: center;
+                background: var(--bg-secondary);
+                border: 2px solid var(--border);
+                border-radius: var(--radius);
+                padding: 12px 16px;
+                margin-bottom: 8px;
+                cursor: grab;
+                font-weight: 600;
+                transition: var(--transition);
+            }
+
+            .sortable-item:active {
+                cursor: grabbing;
+            }
+
+            .sortable-item:hover {
+                border-color: var(--primary-light);
+            }
+
+            .sortable-item.sortable-ghost {
+                opacity: 0.4;
+                background: var(--bg);
+            }
+
+            .drag-handle {
+                margin-right: 12px;
+                color: var(--text-muted);
+                font-size: 1.2rem;
+            }
+        </style>
+
+        <ul id="trackerOrderList" class="sortable-list">
+            <li class="sortable-item" data-id="unit3d"><span class="drag-handle">≡</span> 🔒 Tous les Trackers UNIT3D</li>
+            <li class="sortable-item" data-id="ygg"><span class="drag-handle">≡</span> 🐝 YGG</li>
+            <li class="sortable-item" data-id="sharewood"><span class="drag-handle">≡</span> 🌲 Sharewood</li>
+            <li class="sortable-item" data-id="torr9"><span class="drag-handle">≡</span> 🔥 Torr9</li>
+            <li class="sortable-item" data-id="abn"><span class="drag-handle">≡</span> 🎬 ABN</li>
+            <li class="sortable-item" data-id="c411"><span class="drag-handle">≡</span> 📡 C411</li>
+            <li class="sortable-item" data-id="lacale"><span class="drag-handle">≡</span> ⚓ La-Cale</li>
+        </ul>
+    </div>
+
+    <div style="text-align: center; margin-top: 40px;">
+        <button type="button" class="btn btn-primary" onclick="generateLink()">🚀 Générer et Installer</button>
+    </div>
+
+    <div id="installLink">
+        <h3>Configuration prête !</h3>
+        <a href="#" id="stremioLink" class="install-btn">Installer sur Stremio</a>
+        <div id="extraLinks"></div>
+    </div>
+</div>
+
+<script>
+    (function autoTheme() {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+        const applyTheme = () => {
+            document.documentElement.setAttribute('data-theme', prefersDark.matches ? 'dark' : 'light');
+        };
+        applyTheme();
+        prefersDark.addEventListener('change', applyTheme);
+    })();
+
+    const prefillConfig = {};
+    const qbittorrentEnabled = true;
+    const manifestBlurb = "";
+    const appVersion = "1.1.0";
+
+    function addTracker(data = null) {
+        const container = document.getElementById('trackersContainer');
+        const div = document.createElement('div');
+        div.className = 'tracker-item';
+        div.innerHTML = `
+            <button type="button" class="btn-remove" onclick="this.parentElement.remove()" title="Supprimer">×</button>
+            <div class="form-group">
+                <label>URL du Tracker</label>
+                <input type="url" class="tracker-url" placeholder="https://votre-tracker-unit3d.com" value="${data ? data.url : ''}">
+            </div>
+            <div class="form-group">
+                <label>Token API</label>
+                <input type="text" class="tracker-token" placeholder="Votre API Token personnel" value="${data ? data.token : ''}">
+            </div>
+        `;
+        container.appendChild(div);
+    }
+
+    function toggleProvider(cardId) {
+        const card = document.getElementById(cardId);
+        card.classList.toggle('expanded');
+    }
+
+    function updateProviderActiveStates() {
+        const providerMap = {
+            'providerYgg': ['yggPasskey'],
+            'providerSharewood': ['sharewoodPasskey'],
+            'providerAbn': ['abnUsername'],
+            'providerLacale': ['lacaleApikey'],
+            'providerC411': ['c411Apikey'],
+            'providerTorr9': ['torr9Passkey']
+        };
+        for (const [cardId, inputIds] of Object.entries(providerMap)) {
+            if (cardId === 'providerYgg') continue;
             const card = document.getElementById(cardId);
-            card.classList.toggle('expanded');
-        }
-
-        function updateProviderActiveStates() {
-            // Map: provider card id -> input ids to check
-            const providerMap = {
-                'providerYgg': ['yggPasskey'],
-                'providerSharewood': ['sharewoodPasskey'],
-                'providerAbn': ['abnUsername'],
-                'providerLacale': ['lacaleApikey'],
-                'providerC411': ['c411Apikey'],
-                'providerTorr9': ['torr9Passkey']
-            };
-            for (const [cardId, inputIds] of Object.entries(providerMap)) {
-                if (cardId === 'providerYgg') continue; // Always active
-                const card = document.getElementById(cardId);
-                const hasValue = inputIds.some(id => {
-                    const el = document.getElementById(id);
-                    return el && el.value.trim() !== '';
-                });
-                if (hasValue) {
-                    card.classList.add('active');
-                } else {
-                    card.classList.remove('active');
-                }
-            }
-        }
-
-        // Listen for input changes on provider fields
-        document.querySelectorAll('.provider-body input').forEach(input => {
-            input.addEventListener('input', updateProviderActiveStates);
-        });
-
-        // Gestion des radio buttons pour le service de débridage
-        function updateDebridFields() {
-            const selectedService = document.querySelector('input[name="debridService"]:checked').value;
-
-            document.getElementById('alldebridKeyGroup').style.display =
-                selectedService === 'alldebrid' ? 'block' : 'none';
-            document.getElementById('torboxKeyGroup').style.display =
-                selectedService === 'torbox' ? 'block' : 'none';
-            document.getElementById('debridlinkKeyGroup').style.display =
-                selectedService === 'debridlink' ? 'block' : 'none';
-            document.getElementById('realdebridKeyGroup').style.display =
-                selectedService === 'realdebrid' ? 'block' : 'none';
-        }
-
-        document.querySelectorAll('input[name="debridService"]').forEach(radio => {
-            radio.addEventListener('change', updateDebridFields);
-        });
-
-        // Chargement initial
-        if (prefillConfig && Object.keys(prefillConfig).length > 0) {
-            document.getElementById('tmdbKey').value = prefillConfig.tmdb_key || '';
-
-            // Détecter quel service est configuré
-            if (prefillConfig.alldebrid_key && prefillConfig.alldebrid_key.trim()) {
-                document.getElementById('debridAlldebrid').checked = true;
-                document.getElementById('alldebridKey').value = prefillConfig.alldebrid_key;
-            } else if (prefillConfig.torbox_key && prefillConfig.torbox_key.trim()) {
-                document.getElementById('debridTorbox').checked = true;
-                document.getElementById('torboxKey').value = prefillConfig.torbox_key;
-            } else if (prefillConfig.debridlink_key && prefillConfig.debridlink_key.trim()) {
-                document.getElementById('debridDebridlink').checked = true;
-                document.getElementById('debridlinkKey').value = prefillConfig.debridlink_key;
-            } else if (prefillConfig.realdebrid_key && prefillConfig.realdebrid_key.trim()) {
-                document.getElementById('debridRealdebrid').checked = true;
-                document.getElementById('realdebridKey').value = prefillConfig.realdebrid_key;
-            } else {
-                document.getElementById('debridNone').checked = true;
-            }
-
-            updateDebridFields();
-
-            // qBit
-            if (prefillConfig.qbittorrent) {
-                document.getElementById('qbitUrl').value = prefillConfig.qbittorrent.host || '';
-                document.getElementById('qbitUser').value = prefillConfig.qbittorrent.username || '';
-                document.getElementById('qbitPass').value = prefillConfig.qbittorrent.password || '';
-                document.getElementById('qbitPublicUrl').value = prefillConfig.qbittorrent.public_url || '';
-            }
-
-            document.getElementById('sharewoodPasskey').value = prefillConfig.sharewood_passkey || '';
-            // YGG passkey removed
-            document.getElementById('abnUsername').value = prefillConfig.abn_username || '';
-            document.getElementById('abnPassword').value = prefillConfig.abn_password || '';
-            document.getElementById('lacaleApikey').value = prefillConfig.lacale_apikey || '';
-            document.getElementById('c411Apikey').value = prefillConfig.c411_apikey || '';
-            document.getElementById('torr9Passkey').value = prefillConfig.torr9_passkey || '';
-
-            // Mettre à jour les états actifs des provider cards
-            updateProviderActiveStates();
-            // Ouvrir automatiquement les cards remplies
-            ['providerYgg', 'providerSharewood', 'providerAbn', 'providerLacale', 'providerC411', 'providerTorr9'].forEach(id => {
-                const card = document.getElementById(id);
-                if (card && card.classList.contains('active') && id !== 'providerYgg') {
-                    card.classList.add('expanded');
-                }
+            const hasValue = inputIds.some(id => {
+                const el = document.getElementById(id);
+                return el && el.value.trim() !== '';
             });
-
-            // Filtre de taille
-            if (prefillConfig.max_size !== undefined) {
-                document.getElementById('maxSize').value = prefillConfig.max_size.toString();
-            }
-
-            // Tri
-            if (prefillConfig.sort_by) {
-                document.getElementById('sortBy').value = prefillConfig.sort_by;
-            }
-
-            // Ordre de priorité
-            if (prefillConfig.providers_order && prefillConfig.providers_order.length > 0) {
-                const list = document.getElementById('trackerOrderList');
-                const items = Array.from(list.children);
-                prefillConfig.providers_order.forEach(id => {
-                    const el = items.find(item => item.getAttribute('data-id') === id);
-                    if (el) list.appendChild(el);
-                });
-            }
-
-            if (prefillConfig.trackers && prefillConfig.trackers.length > 0) {
-                prefillConfig.trackers.forEach(t => addTracker(t));
+            if (hasValue) {
+                card.classList.add('active');
             } else {
-                addTracker();
+                card.classList.remove('active');
             }
+        }
+    }
+
+    document.querySelectorAll('.provider-body input').forEach(input => {
+        input.addEventListener('input', updateProviderActiveStates);
+    });
+
+    function updateDebridFields() {
+        const selectedService = document.querySelector('input[name="debridService"]:checked').value;
+
+        document.getElementById('alldebridKeyGroup').style.display =
+            selectedService === 'alldebrid' ? 'block' : 'none';
+        document.getElementById('torboxKeyGroup').style.display =
+            selectedService === 'torbox' ? 'block' : 'none';
+        document.getElementById('debridlinkKeyGroup').style.display =
+            selectedService === 'debridlink' ? 'block' : 'none';
+        document.getElementById('realdebridKeyGroup').style.display =
+            selectedService === 'realdebrid' ? 'block' : 'none';
+        document.getElementById('premiumizeKeyGroup').style.display =
+            selectedService === 'premiumize' ? 'block' : 'none';
+    }
+
+    document.querySelectorAll('input[name="debridService"]').forEach(radio => {
+        radio.addEventListener('change', updateDebridFields);
+    });
+
+    if (prefillConfig && Object.keys(prefillConfig).length > 0) {
+        document.getElementById('tmdbKey').value = prefillConfig.tmdb_key || '';
+
+        if (prefillConfig.alldebrid_key && prefillConfig.alldebrid_key.trim()) {
+            document.getElementById('debridAlldebrid').checked = true;
+            document.getElementById('alldebridKey').value = prefillConfig.alldebrid_key;
+        } else if (prefillConfig.torbox_key && prefillConfig.torbox_key.trim()) {
+            document.getElementById('debridTorbox').checked = true;
+            document.getElementById('torboxKey').value = prefillConfig.torbox_key;
+        } else if (prefillConfig.debridlink_key && prefillConfig.debridlink_key.trim()) {
+            document.getElementById('debridDebridlink').checked = true;
+            document.getElementById('debridlinkKey').value = prefillConfig.debridlink_key;
+        } else if (prefillConfig.realdebrid_key && prefillConfig.realdebrid_key.trim()) {
+            document.getElementById('debridRealdebrid').checked = true;
+            document.getElementById('realdebridKey').value = prefillConfig.realdebrid_key;
+        } else if (prefillConfig.premiumize_key && prefillConfig.premiumize_key.trim()) {
+            document.getElementById('debridPremiumize').checked = true;
+            document.getElementById('premiumizeKey').value = prefillConfig.premiumize_key;
+        } else {
+            document.getElementById('debridNone').checked = true;
+        }
+
+        updateDebridFields();
+
+        if (prefillConfig.qbittorrent) {
+            document.getElementById('qbitUrl').value = prefillConfig.qbittorrent.host || '';
+            document.getElementById('qbitUser').value = prefillConfig.qbittorrent.username || '';
+            document.getElementById('qbitPass').value = prefillConfig.qbittorrent.password || '';
+            document.getElementById('qbitPublicUrl').value = prefillConfig.qbittorrent.public_url || '';
+        }
+
+        document.getElementById('sharewoodPasskey').value = prefillConfig.sharewood_passkey || '';
+        document.getElementById('abnUsername').value = prefillConfig.abn_username || '';
+        document.getElementById('abnPassword').value = prefillConfig.abn_password || '';
+        document.getElementById('lacaleApikey').value = prefillConfig.lacale_apikey || '';
+        document.getElementById('c411Apikey').value = prefillConfig.c411_apikey || '';
+        document.getElementById('torr9Passkey').value = prefillConfig.torr9_passkey || '';
+
+        updateProviderActiveStates();
+        ['providerYgg', 'providerSharewood', 'providerAbn', 'providerLacale', 'providerC411', 'providerTorr9'].forEach(id => {
+            const card = document.getElementById(id);
+            if (card && card.classList.contains('active') && id !== 'providerYgg') {
+                card.classList.add('expanded');
+            }
+        });
+
+        if (prefillConfig.max_size !== undefined) {
+            document.getElementById('maxSize').value = prefillConfig.max_size.toString();
+        }
+
+        if (prefillConfig.sort_by) {
+            document.getElementById('sortBy').value = prefillConfig.sort_by;
+        }
+
+        if (prefillConfig.providers_order && prefillConfig.providers_order.length > 0) {
+            const list = document.getElementById('trackerOrderList');
+            const items = Array.from(list.children);
+            prefillConfig.providers_order.forEach(id => {
+                const el = items.find(item => item.getAttribute('data-id') === id);
+                if (el) list.appendChild(el);
+            });
+        }
+
+        if (prefillConfig.trackers && prefillConfig.trackers.length > 0) {
+            prefillConfig.trackers.forEach(t => addTracker(t));
         } else {
             addTracker();
         }
+    } else {
+        addTracker();
+    }
 
-        // Masquer la section qBittorrent si désactivée côté serveur
-        if (!qbittorrentEnabled) {
-            const qbitSection = document.getElementById('qbittorrentSection');
-            if (qbitSection) {
-                qbitSection.style.display = 'none';
-            }
+    if (!qbittorrentEnabled) {
+        const qbitSection = document.getElementById('qbittorrentSection');
+        if (qbitSection) qbitSection.style.display = 'none';
 
-            // Masquer l'option "Aucun (qBittorrent seulement)"
-            const debridNoneLabel = document.getElementById('debridNoneLabel');
-            if (debridNoneLabel) {
-                debridNoneLabel.style.display = 'none';
-            }
+        const debridNoneLabel = document.getElementById('debridNoneLabel');
+        if (debridNoneLabel) debridNoneLabel.style.display = 'none';
 
-            // Si "Aucun" était sélectionné, sélectionner AllDebrid par défaut
-            const debridNone = document.getElementById('debridNone');
-            if (debridNone && debridNone.checked) {
-                document.getElementById('debridAlldebrid').checked = true;
-                updateDebridFields();
-            }
+        const debridNone = document.getElementById('debridNone');
+        if (debridNone && debridNone.checked) {
+            document.getElementById('debridAlldebrid').checked = true;
+            updateDebridFields();
+        }
+    }
+
+    if (appVersion) {
+        const versionElement = document.getElementById('versionBadge');
+        if (versionElement) versionElement.textContent = `v${appVersion}`;
+    }
+
+    if (manifestBlurb && manifestBlurb.trim() !== "") {
+        const blurbElement = document.getElementById('customBlurb');
+        if (blurbElement) {
+            blurbElement.innerHTML = manifestBlurb;
+            blurbElement.style.display = 'block';
+        }
+    }
+
+    new Sortable(document.getElementById('trackerOrderList'), {
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        handle: '.sortable-item'
+    });
+
+    function generateLink() {
+        const tmdbKey = document.getElementById('tmdbKey').value.trim();
+
+        const selectedDebrid = document.querySelector('input[name="debridService"]:checked').value;
+        let alldebridKey = '';
+        let torboxKey = '';
+        let debridlinkKey = '';
+        let realdebridKey = '';
+        let premiumizeKey = '';
+
+        if (selectedDebrid === 'alldebrid') {
+            alldebridKey = document.getElementById('alldebridKey').value.trim();
+            if (!alldebridKey) { alert("Erreur : Veuillez entrer votre clé API AllDebrid."); return; }
+        } else if (selectedDebrid === 'torbox') {
+            torboxKey = document.getElementById('torboxKey').value.trim();
+            if (!torboxKey) { alert("Erreur : Veuillez entrer votre clé API TorBox."); return; }
+        } else if (selectedDebrid === 'debridlink') {
+            debridlinkKey = document.getElementById('debridlinkKey').value.trim();
+            if (!debridlinkKey) { alert("Erreur : Veuillez entrer votre clé API Debrid-Link."); return; }
+        } else if (selectedDebrid === 'realdebrid') {
+            realdebridKey = document.getElementById('realdebridKey').value.trim();
+            if (!realdebridKey) { alert("Erreur : Veuillez entrer votre clé API Real-Debrid."); return; }
+        } else if (selectedDebrid === 'premiumize') {
+            premiumizeKey = document.getElementById('premiumizeKey').value.trim();
+            if (!premiumizeKey) { alert("Erreur : Veuillez entrer votre clé API Premiumize."); return; }
         }
 
-        // Afficher le blurb personnalisé si configuré
-        // Afficher la version
-        if (appVersion) {
-            const versionElement = document.getElementById('versionBadge');
-            if (versionElement) {
-                versionElement.textContent = `v${appVersion}`;
-            }
+        const qbitUrl = document.getElementById('qbitUrl').value.trim();
+        const qbitUser = document.getElementById('qbitUser').value.trim();
+        const qbitPass = document.getElementById('qbitPass').value.trim();
+        const qbitPublicUrl = document.getElementById('qbitPublicUrl').value.trim();
+        const hasQbit = qbitUrl && qbitPublicUrl;
+
+        const sharewoodPasskey = document.getElementById('sharewoodPasskey').value.trim();
+        const abnUsername = document.getElementById('abnUsername').value.trim();
+        const abnPassword = document.getElementById('abnPassword').value.trim();
+        const lacaleApikey = document.getElementById('lacaleApikey').value.trim();
+        const c411Apikey = document.getElementById('c411Apikey').value.trim();
+        const torr9Passkey = document.getElementById('torr9Passkey').value.trim();
+        const maxSize = parseInt(document.getElementById('maxSize').value) || 0;
+        const sortBy = document.getElementById('sortBy').value;
+
+        if (!tmdbKey) { alert("Erreur : La clé TMDB est obligatoire."); return; }
+
+        if (selectedDebrid === 'none' && !qbittorrentEnabled) {
+            alert("Erreur : qBittorrent est désactivé sur ce serveur. Vous devez configurer un service de débridage.");
+            return;
         }
 
-        // Afficher le blurb personnalisé si présent
-        if (manifestBlurb && manifestBlurb.trim() !== "") {
-            const blurbElement = document.getElementById('customBlurb');
-            if (blurbElement) {
-                blurbElement.innerHTML = manifestBlurb;
-                blurbElement.style.display = 'block';
-            }
+        if (selectedDebrid === 'none' && !hasQbit) {
+            alert("Erreur : Vous devez configurer soit un service de débridage, soit qBittorrent.");
+            return;
         }
 
-        // Initialiser SortableJS
-        new Sortable(document.getElementById('trackerOrderList'), {
-            animation: 150,
-            ghostClass: 'sortable-ghost',
-            handle: '.sortable-item'
+        const trackers = [];
+        document.querySelectorAll('.tracker-item').forEach(item => {
+            const url = item.querySelector('.tracker-url').value.trim();
+            const token = item.querySelector('.tracker-token').value.trim();
+            if (url && token) {
+                trackers.push({ url: url.replace(/\/$/, ''), token: token });
+            }
         });
 
-        function generateLink() {
-            const tmdbKey = document.getElementById('tmdbKey').value.trim();
+        const providersOrder = Array.from(document.querySelectorAll('#trackerOrderList .sortable-item'))
+            .map(li => li.getAttribute('data-id'));
 
-            // Vérifier quel service de débridage est sélectionné
-            const selectedDebrid = document.querySelector('input[name="debridService"]:checked').value;
-            let alldebridKey = '';
-            let torboxKey = '';
-            let debridlinkKey = '';
-            let realdebridKey = '';
+        const config = {
+            tmdb_key: tmdbKey,
+            alldebrid_key: alldebridKey,
+            torbox_key: torboxKey,
+            debridlink_key: debridlinkKey,
+            realdebrid_key: realdebridKey,
+            premiumize_key: premiumizeKey,
+            trackers: trackers,
+            sharewood_passkey: sharewoodPasskey,
+            abn_username: abnUsername,
+            abn_password: abnPassword,
+            lacale_apikey: lacaleApikey,
+            c411_apikey: c411Apikey,
+            torr9_passkey: torr9Passkey,
+            max_size: maxSize,
+            sort_by: sortBy,
+            providers_order: providersOrder,
+            qbittorrent: hasQbit ? {
+                host: qbitUrl,
+                username: qbitUser,
+                password: qbitPass,
+                public_url: qbitPublicUrl
+            } : null
+        };
 
-            if (selectedDebrid === 'alldebrid') {
-                alldebridKey = document.getElementById('alldebridKey').value.trim();
-                if (!alldebridKey) {
-                    alert("Erreur : Veuillez entrer votre clé API AllDebrid.");
-                    return;
-                }
-            } else if (selectedDebrid === 'torbox') {
-                torboxKey = document.getElementById('torboxKey').value.trim();
-                if (!torboxKey) {
-                    alert("Erreur : Veuillez entrer votre clé API TorBox.");
-                    return;
-                }
-            } else if (selectedDebrid === 'debridlink') {
-                debridlinkKey = document.getElementById('debridlinkKey').value.trim();
-                if (!debridlinkKey) {
-                    alert("Erreur : Veuillez entrer votre clé API Debrid-Link.");
-                    return;
-                }
-            } else if (selectedDebrid === 'realdebrid') {
-                realdebridKey = document.getElementById('realdebridKey').value.trim();
-                if (!realdebridKey) {
-                    alert("Erreur : Veuillez entrer votre clé API Real-Debrid.");
-                    return;
-                }
-            }
+        const configStr = JSON.stringify(config);
+        const configB64 = btoa(configStr);
 
-            // qBit Config
-            const qbitUrl = document.getElementById('qbitUrl').value.trim();
-            const qbitUser = document.getElementById('qbitUser').value.trim();
-            const qbitPass = document.getElementById('qbitPass').value.trim();
-            const qbitPublicUrl = document.getElementById('qbitPublicUrl').value.trim();
+        const baseUrl = window.location.origin.replace(/\/$/, '');
+        const httpInstallUrl = `${baseUrl}/${configB64}/manifest.json`;
+        const installUrl = `stremio://${window.location.host}/${configB64}/manifest.json`;
+        const configPageUrl = `${baseUrl}/${configB64}/configure`;
 
-            const hasQbit = qbitUrl && qbitPublicUrl;
+        const linkDiv = document.getElementById('installLink');
+        const link = document.getElementById('stremioLink');
+        const extraLinks = document.getElementById('extraLinks');
 
-            const sharewoodPasskey = document.getElementById('sharewoodPasskey').value.trim();
-            // YGG est toujours inclus sans passkey
-            const abnUsername = document.getElementById('abnUsername').value.trim();
-            const abnPassword = document.getElementById('abnPassword').value.trim();
-            const lacaleApikey = document.getElementById('lacaleApikey').value.trim();
-            const c411Apikey = document.getElementById('c411Apikey').value.trim();
-            const torr9Passkey = document.getElementById('torr9Passkey').value.trim();
-            const maxSize = parseInt(document.getElementById('maxSize').value) || 0;
-            const sortBy = document.getElementById('sortBy').value;
+        link.href = installUrl;
+        linkDiv.style.display = 'block';
 
-            if (!tmdbKey) {
-                alert("Erreur : La clé TMDB est obligatoire.");
-                return;
-            }
-
-            if (selectedDebrid === 'none' && !qbittorrentEnabled) {
-                alert("Erreur : qBittorrent est désactivé sur ce serveur. Vous devez configurer un service de débridage (AllDebrid, TorBox, Debrid-Link ou Real-Debrid).");
-                return;
-            }
-
-            if (selectedDebrid === 'none' && !hasQbit) {
-                alert("Erreur : Vous devez configurer soit un service de débridage (AllDebrid/TorBox/Debrid-Link/Real-Debrid), soit qBittorrent.");
-                return;
-            }
-
-            const trackers = [];
-            document.querySelectorAll('.tracker-item').forEach(item => {
-                const url = item.querySelector('.tracker-url').value.trim();
-                const token = item.querySelector('.tracker-token').value.trim();
-
-                if (url && token) {
-                    trackers.push({
-                        url: url.replace(/\/$/, ''),
-                        token: token
-                    });
-                }
-            });
-
-            // YGG est toujours actif, pas besoin de vérifier
-            // Les utilisateurs peuvent utiliser YGG sans passkey avec les services de debrid
-            if (trackers.length === 0 && !sharewoodPasskey && !abnUsername && !alldebridKey && !torboxKey && !debridlinkKey && !realdebridKey) {
-                alert("Attention : Sans tracker configuré ni service de debrid, Frenchio ne retournera que les résultats publics de YGG.");
-                return;
-            }
-
-            // Récupérer l'ordre de priorité
-            const providersOrder = Array.from(document.querySelectorAll('#trackerOrderList .sortable-item'))
-                .map(li => li.getAttribute('data-id'));
-
-            const config = {
-                tmdb_key: tmdbKey,
-                alldebrid_key: alldebridKey,
-                torbox_key: torboxKey,
-                debridlink_key: debridlinkKey,
-                realdebrid_key: realdebridKey,
-                trackers: trackers,
-                sharewood_passkey: sharewoodPasskey,
-                abn_username: abnUsername,
-                abn_password: abnPassword,
-                lacale_apikey: lacaleApikey,
-                c411_apikey: c411Apikey,
-                torr9_passkey: torr9Passkey,
-                max_size: maxSize,
-                sort_by: sortBy,
-                providers_order: providersOrder,
-                qbittorrent: hasQbit ? {
-                    host: qbitUrl,
-                    username: qbitUser,
-                    password: qbitPass,
-                    public_url: qbitPublicUrl
-                } : null
-            };
-
-            const configStr = JSON.stringify(config);
-            const configB64 = btoa(configStr);
-
-            // IMPORTANT:
-            // - On ne doit PAS réutiliser l'URL courante, car elle peut contenir un /{config}/configure
-            //   (ce qui casserait les liens en les imbriquant).
-            // - Toujours repartir de l'origine visible (proxy/traefik inclus).
-            const baseUrl = window.location.origin.replace(/\/$/, '');
-
-            const httpInstallUrl = `${baseUrl}/${configB64}/manifest.json`;
-            // IMPORTANT: Le bouton Stremio doit rester en stremio://<host>/<config>/manifest.json
-            // (pas stremio://https//...)
-            const installUrl = `stremio://${window.location.host}/${configB64}/manifest.json`;
-            const configPageUrl = `${baseUrl}/${configB64}/configure`;
-
-            const linkDiv = document.getElementById('installLink');
-            const link = document.getElementById('stremioLink');
-            const extraLinks = document.getElementById('extraLinks');
-
-            link.href = installUrl;
-            linkDiv.style.display = 'block';
-
-            extraLinks.innerHTML = `
-                <div class="extra-links">
-                    <div class="copy-row">
-                        <p><strong>Lien manifest (HTTP)</strong> — à copier si besoin :</p>
-                        <input class="copy-input" type="text" value="${httpInstallUrl}" readonly onclick="this.select()">
-                    </div>
-
-                    <div class="copy-row">
-                        <p><strong>Lien pour modifier cette configuration</strong> :</p>
-                        <input class="copy-input" type="text" value="${configPageUrl}" readonly onclick="this.select()">
-                    </div>
+        extraLinks.innerHTML = `
+            <div class="extra-links">
+                <div class="copy-row">
+                    <p><strong>Lien manifest (HTTP)</strong> — à copier si besoin :</p>
+                    <input class="copy-input" type="text" value="${httpInstallUrl}" readonly onclick="this.select()">
                 </div>
-            `;
+                <div class="copy-row">
+                    <p><strong>Lien pour modifier cette configuration</strong> :</p>
+                    <input class="copy-input" type="text" value="${configPageUrl}" readonly onclick="this.select()">
+                </div>
+            </div>
+        `;
 
-            linkDiv.scrollIntoView({ behavior: 'smooth' });
-        }
-    </script>
+        linkDiv.scrollIntoView({ behavior: 'smooth' });
+    }
+</script>
+```
+
 </body>
 
 </html>
