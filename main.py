@@ -33,6 +33,7 @@ from services.alldebrid import AllDebridService
 from services.torbox import TorBoxService
 from services.debridlink import DebridLinkService
 from services.realdebrid import RealDebridService
+from services.premiumize import PremiumizeService
 from services.sharewood import SharewoodService
 from services.ygg import YggService
 from services.abn import ABNService
@@ -287,6 +288,11 @@ async def handle_stream(request):
     if config.get('realdebrid_key') and config['realdebrid_key'].strip():
         realdebrid_service = RealDebridService(config['realdebrid_key'])
         logging.info("Real-Debrid service initialized")
+
+        premiumize_service = None
+    if config.get('premiumize_key') and config['premiumize_key'].strip():
+        premiumize_service = PremiumizeService(config['premiumize_key'])
+        logging.info("Premiumize service initialized")
     
     if not alldebrid_service and not torbox_service and not debridlink_service and not realdebrid_service:
         logging.info("No debrid service configured, using qBittorrent fallback")
@@ -611,6 +617,13 @@ async def handle_stream(request):
         availability = await realdebrid_service.check_availability(hashes)
         debrid_provider = "realdebrid"
         logging.info(f"Real-Debrid: {len([v for v in availability.values() if v])} cached torrents")
+
+    elif premiumize_service:
+        hashes = [t['info_hash'] for t in torrents if t.get('info_hash')]
+        availability = await premiumize_service.check_availability(hashes)
+        debrid_provider = "premiumize"
+        logging.info(f"Premiumize: {len([v for v in availability.values() if v])} cached torrents")
+
 
     # 4. Générer les streams
     cached_torrents = []
@@ -988,6 +1001,29 @@ async def handle_resolve(request):
         else:
             logging.error(f"Real-Debrid resolve: Failed to get stream URL for hash {info_hash}")
             return web.Response(status=404, text="Could not resolve Real-Debrid stream")
+
+    elif service_name == 'premiumize':
+        logging.info(f"Premiumize resolve: Starting with hash={info_hash}")
+        
+        premiumize_key = config.get('premiumize_key')
+        if not premiumize_key:
+            return web.Response(status=400, text="Premiumize not configured")
+        
+        debrid_service = PremiumizeService(premiumize_key)
+        
+        stream_url = await debrid_service.unlock_magnet(
+            info_hash,
+            season=int(season) if season else None,
+            episode=int(episode) if episode else None,
+            media_type=media_type
+        )
+        
+        if stream_url:
+            logging.info(f"Premiumize resolve: Redirecting to: {stream_url}")
+            raise web.HTTPFound(stream_url)
+        else:
+            logging.error(f"Premiumize resolve: Failed to get stream URL for hash {info_hash}")
+            return web.Response(status=404, text="Could not resolve Premiumize stream")
     
     else:
         return web.Response(status=400, text=f"Unknown service: {service_name}")
