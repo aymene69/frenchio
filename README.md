@@ -331,6 +331,15 @@ MANIFEST_BLURB=Version communautaire - Merci de votre soutien!
 
 **Utilité** : Permet d'afficher des informations supplémentaires, liens de support, etc.
 
+### ADDON_PASSWORD
+
+Protège l'accès à la génération du manifest par un mot de passe.
+
+```bash
+# Exemple
+ADDON_PASSWORD=mot_de_passe
+```
+
 ### Exemple complet avec Docker Compose
 
 ```yaml
@@ -339,6 +348,7 @@ environment:
   - QBITTORRENT_ENABLE=false
   - MANIFEST_TITLE_SUFFIX=| ElfHosted
   - MANIFEST_BLURB=<b>Premium hosting by ElfHosted</b> - <a href="https://elfhosted.com/support">Support</a>
+  - ADDON_PASSWORD=mot_de_passe
 ```
 
 ## 🔧 Configuration qBittorrent

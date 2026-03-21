@@ -470,7 +470,26 @@
             </p>
         </div>
 
-        <!-- Services Obligatoires -->
+        <!-- Section Mot de Passe (si activé sur le serveur) -->
+        <div id="passwordGateCard" class="card" style="display: none;">
+            <div class="card-header">
+                <h2>🔐 Mot de passe requis</h2>
+            </div>
+            <p class="help-text">
+                Cet addon est protégé par un mot de passe. Veuillez le saisir pour accéder à la configuration.
+            </p>
+            <div class="form-group" style="margin-top: 20px;">
+                <label for="addonPassword">Mot de passe de l'addon</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="password" id="addonPassword" placeholder="Saisissez le mot de passe..." style="flex: 1;">
+                    <button type="button" class="btn btn-primary" onclick="verifyPassword()" id="verifyPwBtn" style="width: auto; padding: 0 24px;">Vérifier</button>
+                </div>
+                <div id="pwMessage" style="margin-top: 10px; font-weight: 600; font-size: 0.875rem; display: none;"></div>
+            </div>
+        </div>
+
+        <div id="configContainer" style="display: none;">
+            <!-- Services Obligatoires -->
         <div class="card">
             <div class="card-header">
                 <h2>🔑 Services Requis</h2>
@@ -912,6 +931,7 @@
         <div style="text-align: center; margin-top: 40px;">
             <button type="button" class="btn btn-primary" onclick="generateLink()">🚀 Générer et Installer</button>
         </div>
+        </div>
 
         <div id="installLink">
             <h3>Configuration prête !</h3>
@@ -936,6 +956,7 @@
         const qbittorrentEnabled = true;
         const manifestBlurb = "";
         const appVersion = "1.1.0";
+        const addonPasswordRequired = false;
 
         function addTracker(data = null) {
             const container = document.getElementById('trackersContainer');
@@ -1009,6 +1030,23 @@
         });
 
         // Chargement initial
+        if (addonPasswordRequired) {
+            const gateCard = document.getElementById('passwordGateCard');
+            const container = document.getElementById('configContainer');
+            
+            gateCard.style.display = 'block';
+            container.style.display = 'none';
+            
+            if (prefillConfig && prefillConfig.password) {
+                document.getElementById('addonPassword').value = prefillConfig.password;
+                // Auto-verify prefilled password
+                verifyPassword(true);
+            }
+        } else {
+            // Show config if no password is required
+            document.getElementById('configContainer').style.display = 'block';
+        }
+
         if (prefillConfig && Object.keys(prefillConfig).length > 0) {
             document.getElementById('tmdbKey').value = prefillConfig.tmdb_key || '';
 
@@ -1132,6 +1170,53 @@
             handle: '.sortable-item'
         });
 
+        async function verifyPassword(auto = false) {
+            const password = document.getElementById('addonPassword').value;
+            const messageEl = document.getElementById('pwMessage');
+            const btn = document.getElementById('verifyPwBtn');
+            const container = document.getElementById('configContainer');
+            const gateCard = document.getElementById('passwordGateCard');
+
+            if (!password && !auto) return;
+
+            try {
+                const response = await fetch(`/verify-password?password=${encodeURIComponent(password)}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    messageEl.style.color = 'var(--success)';
+                    messageEl.textContent = '✓ Mot de passe valide';
+                    messageEl.style.display = 'block';
+                    
+                    document.getElementById('addonPassword').disabled = true;
+                    btn.style.display = 'none';
+                    
+                    // Unlock the rest of the config
+                    container.style.display = 'block';
+                    
+                    // If it was manual (not auto), scroll to the content
+                    if (!auto) {
+                        setTimeout(() => {
+                            container.scrollIntoView({ behavior: 'smooth' });
+                        }, 100);
+                    }
+                } else {
+                    messageEl.style.color = 'var(--danger)';
+                    messageEl.textContent = '✗ Mot de passe incorrect';
+                    messageEl.style.display = 'block';
+                    container.style.display = 'none';
+                    if (auto) {
+                        gateCard.style.display = 'block'; // Show if auto-verify failed
+                    }
+                }
+            } catch (error) {
+                console.error('Erreur lors de la vérification du mot de passe:', error);
+                messageEl.style.color = 'var(--warning)';
+                messageEl.textContent = '⚠ Erreur de connexion au serveur';
+                messageEl.style.display = 'block';
+            }
+        }
+
         function generateLink() {
             const tmdbKey = document.getElementById('tmdbKey').value.trim();
 
@@ -1226,6 +1311,7 @@
                 .map(li => li.getAttribute('data-id'));
 
             const config = {
+                password: document.getElementById('addonPassword').value,
                 tmdb_key: tmdbKey,
                 alldebrid_key: alldebridKey,
                 torbox_key: torboxKey,

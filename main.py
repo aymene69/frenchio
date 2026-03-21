@@ -72,12 +72,15 @@ STREMIO_ADDONS_CONFIG = {
 QBITTORRENT_ENABLE = os.getenv('QBITTORRENT_ENABLE', 'true').lower() in ('true', '1', 'yes')
 MANIFEST_TITLE_SUFFIX = os.getenv('MANIFEST_TITLE_SUFFIX', '')
 MANIFEST_BLURB = os.getenv('MANIFEST_BLURB', '')
+ADDON_PASSWORD = os.getenv('ADDON_PASSWORD', '')
 
 logging.info(f"qBittorrent enabled: {QBITTORRENT_ENABLE}")
 if MANIFEST_TITLE_SUFFIX:
     logging.info(f"Manifest title suffix: {MANIFEST_TITLE_SUFFIX}")
 if MANIFEST_BLURB:
     logging.info(f"Manifest blurb configured")
+if ADDON_PASSWORD:
+    logging.info(f"Addon password protection enabled")
 
 # ============================================================================
 # Middleware
@@ -100,6 +103,19 @@ async def cors_middleware(request, handler):
 # ============================================================================
 # Configuration Handlers
 # ============================================================================
+
+async def handle_verify_password(request):
+    """Vérifie si le mot de passe est correct"""
+    password = request.query.get('password', '')
+    if ADDON_PASSWORD and password == ADDON_PASSWORD:
+        logging.info(f"Password verification attempt successful")
+        return web.json_response({"success": True})
+    elif not ADDON_PASSWORD:
+        logging.info(f"No password required")
+        return web.json_response({"success": True, "message": "No password required"})
+    else:
+        logging.info(f"Password verification attempt failed")
+        return web.json_response({"success": False}, status=401)
 
 async def handle_configure(request):
     """
@@ -146,6 +162,10 @@ async def handle_configure(request):
         
         # Injection de la version de l'application
         content = content.replace('const appVersion = "1.1.0";', f'const appVersion = "{APP_VERSION}";')
+
+        # Injection de la protection par mot de passe
+        password_required_js = 'true' if ADDON_PASSWORD else 'false'
+        content = content.replace('const addonPasswordRequired = false;', f'const addonPasswordRequired = {password_required_js};')
         
         return web.Response(text=content, content_type='text/html')
     except Exception as e:
@@ -159,6 +179,17 @@ def decode_config(config_str):
         logging.error(f"Config Decode Error: {e}")
         return None
 
+def is_addon_password_valid(config):
+    """Vérifie si le mot de passe de l'addon est correct"""
+    if not ADDON_PASSWORD:
+        return True
+    
+    if not config or config.get('password') != ADDON_PASSWORD:
+        logging.warning(f"Unauthorized access attempt: Invalid or missing addon password")
+        return False
+        
+    return True
+
 async def handle_manifest(request):
     """Retourne le manifest de l'addon"""
     config_str = request.match_info.get('config', '')
@@ -166,6 +197,9 @@ async def handle_manifest(request):
     
     if not config:
         return web.Response(status=400, text="Invalid Config")
+    
+    if not is_addon_password_valid(config):
+        return web.Response(status=401, text="Unauthorized: Invalid Password")
 
     # Construction du nom de l'addon avec suffixe optionnel
     addon_name = "Frenchio"
@@ -246,6 +280,9 @@ async def handle_stream(request):
     config = decode_config(config_str)
     if not config:
         return web.json_response({"streams": []})
+
+    if not is_addon_password_valid(config):
+        return web.json_response({"streams": [], "message": "Unauthorized: Invalid Password"}, status=401)
 
     stream_type = request.match_info.get('type')
     stream_id = request.match_info.get('id')
@@ -812,6 +849,9 @@ async def handle_resolve(request):
     if not config:
         return web.Response(status=400, text="Invalid config")
     
+    if not is_addon_password_valid(config):
+        return web.Response(status=401, text="Unauthorized: Invalid Password")
+    
     service_name = request.match_info.get('service', 'alldebrid')
     info_hash = request.match_info.get('hash')
     
@@ -996,6 +1036,7 @@ async def get_app():
     app = web.Application(middlewares=[cors_middleware])
     app.router.add_get('/', handle_configure)
     app.router.add_get('/configure', handle_configure)
+    app.router.add_get('/verify-password', handle_verify_password)
     app.router.add_get('/manifest.json', handle_manifest_no_config)
     app.router.add_get('/stream/{type}/{id}.json', handle_stream_no_config)
     app.router.add_get('/{config}/', handle_configure) # Nouvelle route pour config pré-remplie
