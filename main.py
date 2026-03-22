@@ -73,6 +73,15 @@ QBITTORRENT_ENABLE = os.getenv('QBITTORRENT_ENABLE', 'true').lower() in ('true',
 MANIFEST_TITLE_SUFFIX = os.getenv('MANIFEST_TITLE_SUFFIX', '')
 MANIFEST_BLURB = os.getenv('MANIFEST_BLURB', '')
 
+# Valeurs par défaut du serveur (.env)
+DEFAULT_TMDB_KEY = os.getenv('TMDB_KEY')
+DEFAULT_SHAREWOOD_PASSKEY = os.getenv('SHAREWOOD_PASSKEY')
+DEFAULT_ABN_USERNAME = os.getenv('ABN_USERNAME')
+DEFAULT_ABN_PASSWORD = os.getenv('ABN_PASSWORD')
+DEFAULT_LACALE_APIKEY = os.getenv('LACALE_APIKEY') or os.getenv('LACALE_PASSKEY')
+DEFAULT_C411_APIKEY = os.getenv('C411_APIKEY')
+DEFAULT_TORR9_PASSKEY = os.getenv('TORR9_PASSKEY')
+
 logging.info(f"qBittorrent enabled: {QBITTORRENT_ENABLE}")
 if MANIFEST_TITLE_SUFFIX:
     logging.info(f"Manifest title suffix: {MANIFEST_TITLE_SUFFIX}")
@@ -140,6 +149,17 @@ async def handle_configure(request):
         qbit_enabled_js = 'true' if QBITTORRENT_ENABLE else 'false'
         content = content.replace('const qbittorrentEnabled = true;', f'const qbittorrentEnabled = {qbit_enabled_js};')
         
+        # Signalisation des champs ayant des valeurs par défaut sur le serveur (noms seulement)
+        server_config_fields = []
+        if DEFAULT_TMDB_KEY: server_config_fields.append('tmdb_key')
+        if DEFAULT_SHAREWOOD_PASSKEY: server_config_fields.append('sharewood_passkey')
+        if DEFAULT_ABN_USERNAME and DEFAULT_ABN_PASSWORD: server_config_fields.append('abn')
+        if DEFAULT_LACALE_APIKEY: server_config_fields.append('lacale_apikey')
+        if DEFAULT_C411_APIKEY: server_config_fields.append('c411_apikey')
+        if DEFAULT_TORR9_PASSKEY: server_config_fields.append('torr9_passkey')
+        
+        content = content.replace('const serverConfigFields = [];', f'const serverConfigFields = {json.dumps(server_config_fields)};')
+        
         # Injection du blurb personnalisé (échappé pour JavaScript)
         blurb_escaped = json.dumps(MANIFEST_BLURB) if MANIFEST_BLURB else '""'
         content = content.replace('const manifestBlurb = "";', f'const manifestBlurb = {blurb_escaped};')
@@ -153,8 +173,32 @@ async def handle_configure(request):
 
 def decode_config(config_str):
     try:
-        decoded = base64.b64decode(config_str).decode('utf-8')
-        return json.loads(decoded)
+        decoded_str = base64.b64decode(config_str).decode('utf-8')
+        config = json.loads(decoded_str)
+        
+        # --- Injection chirurgicale des défauts du serveur ---
+        # Si une clé est absente ou vide dans la config utilisateur, on injecte la valeur .env
+        if not config.get('tmdb_key') and DEFAULT_TMDB_KEY:
+            config['tmdb_key'] = DEFAULT_TMDB_KEY
+            
+        if not config.get('sharewood_passkey') and DEFAULT_SHAREWOOD_PASSKEY:
+            config['sharewood_passkey'] = DEFAULT_SHAREWOOD_PASSKEY
+            
+        if not config.get('abn_username') and DEFAULT_ABN_USERNAME:
+            config['abn_username'] = DEFAULT_ABN_USERNAME
+        if not config.get('abn_password') and DEFAULT_ABN_PASSWORD:
+            config['abn_password'] = DEFAULT_ABN_PASSWORD
+            
+        if not config.get('lacale_apikey') and DEFAULT_LACALE_APIKEY:
+            config['lacale_apikey'] = DEFAULT_LACALE_APIKEY
+            
+        if not config.get('c411_apikey') and DEFAULT_C411_APIKEY:
+            config['c411_apikey'] = DEFAULT_C411_APIKEY
+            
+        if not config.get('torr9_passkey') and DEFAULT_TORR9_PASSKEY:
+            config['torr9_passkey'] = DEFAULT_TORR9_PASSKEY
+            
+        return config
     except Exception as e:
         logging.error(f"Config Decode Error: {e}")
         return None

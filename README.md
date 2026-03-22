@@ -341,6 +341,23 @@ environment:
   - MANIFEST_BLURB=<b>Premium hosting by ElfHosted</b> - <a href="https://elfhosted.com/support">Support</a>
 ```
 
+### Valeurs par défaut (API Keys & Trackers)
+
+Frenchio permet aux administrateurs de définir des clés API par défaut. Si ces variables sont présentes dans le `.env` ou l'environnement Docker, les utilisateurs peuvent laisser les champs correspondants vides dans la page de configuration, et l'addon utilisera automatiquement les valeurs du serveur.
+
+| Variable | Description |
+| :--- | :--- |
+| `TMDB_KEY` | Clé API TMDB par défaut |
+| `SHAREWOOD_PASSKEY` | Passkey Sharewood par défaut |
+| `ABN_USERNAME` / `ABN_PASSWORD` | Identifiants ABN par défaut |
+| `LACALE_APIKEY` | Clé API La-Cale par défaut |
+| `C411_APIKEY` | Clé API C411 par défaut |
+| `TORR9_PASSKEY` | Passkey Torr9 par défaut |
+
+> [!IMPORTANT]
+> **Sécurité renforcée** : Contrairement aux clés saisies manuellement, ces valeurs par défaut restent **exclusivement sur le serveur**. Elles ne sont **pas** incluses dans l'URL de configuration générée, garantissant une confidentialité totale pour l'administrateur.
+```
+
 ## 🔧 Configuration qBittorrent
 
 Pour un streaming optimal avec qBittorrent :

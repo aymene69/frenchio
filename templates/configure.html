@@ -207,6 +207,14 @@
             text-decoration: underline;
         }
 
+        .help-text.server-default {
+            color: var(--success);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
         input[type="text"],
         input[type="url"],
         input[type="password"],
@@ -936,6 +944,7 @@
         const qbittorrentEnabled = true;
         const manifestBlurb = "";
         const appVersion = "1.1.0";
+        const serverConfigFields = [];
 
         function addTracker(data = null) {
             const container = document.getElementById('trackersContainer');
@@ -1131,6 +1140,57 @@
             ghostClass: 'sortable-ghost',
             handle: '.sortable-item'
         });
+
+        // Appliquer les indicateurs de défauts serveur sur les placeholders
+        function applyServerDefaultsUI() {
+            if (!serverConfigFields || serverConfigFields.length === 0) return;
+
+            const fieldMap = {
+                'tmdb_key': 'tmdbKey',
+                'sharewood_passkey': 'sharewoodPasskey',
+                'abn': 'abnUsername',
+                'lacale_apikey': 'lacaleApikey',
+                'c411_apikey': 'c411Apikey',
+                'torr9_passkey': 'torr9Passkey'
+            };
+
+            const cardMap = {
+                'sharewood_passkey': 'providerSharewood',
+                'abn': 'providerAbn',
+                'lacale_apikey': 'providerLacale',
+                'c411_apikey': 'providerC411',
+                'torr9_passkey': 'providerTorr9'
+            };
+
+            serverConfigFields.forEach(field => {
+                const inputId = fieldMap[field];
+                const input = document.getElementById(inputId);
+                if (input) {
+                    const help = document.createElement('span');
+                    help.className = 'help-text server-default';
+                    help.innerHTML = '💡 Laissez vide pour utiliser la valeur par défaut du serveur';
+                    input.parentNode.appendChild(help);
+                }
+
+                // Ajouter le badge "ACTIF" sur la carte du provider
+                const cardId = cardMap[field];
+                if (cardId) {
+                    const card = document.getElementById(cardId);
+                    if (card) {
+                        card.classList.add('active'); // Allume le point vert
+                        const nameSpan = card.querySelector('.provider-name');
+                        if (nameSpan && !nameSpan.querySelector('.provider-badge')) {
+                            const badge = document.createElement('span');
+                            badge.className = 'provider-badge always-on';
+                            badge.style.marginLeft = '8px';
+                            badge.textContent = 'ACTIF';
+                            nameSpan.appendChild(badge);
+                        }
+                    }
+                }
+            });
+        }
+        applyServerDefaultsUI();
 
         function generateLink() {
             const tmdbKey = document.getElementById('tmdbKey').value.trim();

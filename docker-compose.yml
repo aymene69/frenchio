@@ -19,6 +19,13 @@ services:
       # - MANIFEST_TITLE_SUFFIX=| ElfHosted
       # Optional: Add custom HTML/markup blurb to manifest description
       # - MANIFEST_BLURB=<b>Custom message here</b>
+      # - TMDB_KEY=
+      # - SHAREWOOD_PASSKEY=
+      # - ABN_USERNAME=
+      # - ABN_PASSWORD=
+      # - LACALE_APIKEY=
+      # - C411_APIKEY=
+      # - TORR9_PASSKEY=
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:7777/manifest.json')"]
