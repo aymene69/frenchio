@@ -73,20 +73,20 @@ QBITTORRENT_ENABLE = os.getenv('QBITTORRENT_ENABLE', 'true').lower() in ('true',
 MANIFEST_TITLE_SUFFIX = os.getenv('MANIFEST_TITLE_SUFFIX', '')
 MANIFEST_BLURB = os.getenv('MANIFEST_BLURB', '')
 
-# Valeurs par défaut du serveur (.env)
-DEFAULT_TMDB_KEY = os.getenv('TMDB_KEY')
-DEFAULT_SHAREWOOD_PASSKEY = os.getenv('SHAREWOOD_PASSKEY')
-DEFAULT_ABN_USERNAME = os.getenv('ABN_USERNAME')
-DEFAULT_ABN_PASSWORD = os.getenv('ABN_PASSWORD')
-DEFAULT_LACALE_APIKEY = os.getenv('LACALE_APIKEY') or os.getenv('LACALE_PASSKEY')
-DEFAULT_C411_APIKEY = os.getenv('C411_APIKEY')
-DEFAULT_TORR9_PASSKEY = os.getenv('TORR9_PASSKEY')
+# Configuration des valeurs par défaut du serveur (.env)
+SERVER_CONFIG_DEFAULTS = [
+    {'keys': ['tmdb_key'], 'values': [DEFAULT_TMDB_KEY], 'label': 'TMDB', 'ui_field': 'tmdb_key'},
+    {'keys': ['sharewood_passkey'], 'values': [DEFAULT_SHAREWOOD_PASSKEY], 'label': 'Sharewood', 'ui_field': 'sharewood_passkey'},
+    {'keys': ['abn_username', 'abn_password'], 'values': [DEFAULT_ABN_USERNAME, DEFAULT_ABN_PASSWORD], 'label': 'ABN', 'ui_field': 'abn'},
+    {'keys': ['lacale_apikey'], 'values': [DEFAULT_LACALE_APIKEY], 'label': 'LaCale', 'ui_field': 'lacale_apikey'},
+    {'keys': ['c411_apikey'], 'values': [DEFAULT_C411_APIKEY], 'label': 'C411', 'ui_field': 'c411_apikey'},
+    {'keys': ['torr9_passkey'], 'values': [DEFAULT_TORR9_PASSKEY], 'label': 'Torr9', 'ui_field': 'torr9_passkey'},
+]
 
-logging.info(f"qBittorrent enabled: {QBITTORRENT_ENABLE}")
-if MANIFEST_TITLE_SUFFIX:
-    logging.info(f"Manifest title suffix: {MANIFEST_TITLE_SUFFIX}")
-if MANIFEST_BLURB:
-    logging.info(f"Manifest blurb configured")
+# Logging des valeurs par défaut actives
+defaults_active = [d['label'] for d in SERVER_CONFIG_DEFAULTS if all(d['values'])]
+if defaults_active:
+    logging.info(f"Server-side defaults active: {', '.join(defaults_active)}")
 
 # ============================================================================
 # Middleware
@@ -150,13 +150,7 @@ async def handle_configure(request):
         content = content.replace('const qbittorrentEnabled = true;', f'const qbittorrentEnabled = {qbit_enabled_js};')
         
         # Signalisation des champs ayant des valeurs par défaut sur le serveur (noms seulement)
-        server_config_fields = []
-        if DEFAULT_TMDB_KEY: server_config_fields.append('tmdb_key')
-        if DEFAULT_SHAREWOOD_PASSKEY: server_config_fields.append('sharewood_passkey')
-        if DEFAULT_ABN_USERNAME and DEFAULT_ABN_PASSWORD: server_config_fields.append('abn')
-        if DEFAULT_LACALE_APIKEY: server_config_fields.append('lacale_apikey')
-        if DEFAULT_C411_APIKEY: server_config_fields.append('c411_apikey')
-        if DEFAULT_TORR9_PASSKEY: server_config_fields.append('torr9_passkey')
+        server_config_fields = [d['ui_field'] for d in SERVER_CONFIG_DEFAULTS if all(d['values'])]
         
         content = content.replace('const serverConfigFields = [];', f'const serverConfigFields = {json.dumps(server_config_fields)};')
         
@@ -173,30 +167,15 @@ async def handle_configure(request):
 
 def decode_config(config_str):
     try:
-        decoded_str = base64.b64decode(config_str).decode('utf-8')
-        config = json.loads(decoded_str)
+        decoded = base64.b64decode(config_str).decode('utf-8')
+        config = json.loads(decoded)
         
-        # --- Injection chirurgicale des défauts du serveur ---
         # Si une clé est absente ou vide dans la config utilisateur, on injecte la valeur .env
-        if not config.get('tmdb_key') and DEFAULT_TMDB_KEY:
-            config['tmdb_key'] = DEFAULT_TMDB_KEY
-            
-        if not config.get('sharewood_passkey') and DEFAULT_SHAREWOOD_PASSKEY:
-            config['sharewood_passkey'] = DEFAULT_SHAREWOOD_PASSKEY
-            
-        if not config.get('abn_username') and DEFAULT_ABN_USERNAME:
-            config['abn_username'] = DEFAULT_ABN_USERNAME
-        if not config.get('abn_password') and DEFAULT_ABN_PASSWORD:
-            config['abn_password'] = DEFAULT_ABN_PASSWORD
-            
-        if not config.get('lacale_apikey') and DEFAULT_LACALE_APIKEY:
-            config['lacale_apikey'] = DEFAULT_LACALE_APIKEY
-            
-        if not config.get('c411_apikey') and DEFAULT_C411_APIKEY:
-            config['c411_apikey'] = DEFAULT_C411_APIKEY
-            
-        if not config.get('torr9_passkey') and DEFAULT_TORR9_PASSKEY:
-            config['torr9_passkey'] = DEFAULT_TORR9_PASSKEY
+        for d in SERVER_CONFIG_DEFAULTS:
+            if all(d['values']):
+                for key, val in zip(d['keys'], d['values']):
+                    if not config.get(key):
+                        config[key] = val
             
         return config
     except Exception as e:
