@@ -99,7 +99,7 @@ if MANIFEST_BLURB:
     logging.info(f"Manifest blurb configured")
 defaults_active = [d['label'] for d in SERVER_CONFIG_DEFAULTS if all(d['values'])]
 if defaults_active:
-    logging.info(f"Server-side default trackers: {', '.join(defaults_active)}")
+    logging.info(f"Server-side default keys: {', '.join(defaults_active)}")
 
 # ============================================================================
 # Middleware
