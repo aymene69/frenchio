@@ -74,6 +74,14 @@ MANIFEST_TITLE_SUFFIX = os.getenv('MANIFEST_TITLE_SUFFIX', '')
 MANIFEST_BLURB = os.getenv('MANIFEST_BLURB', '')
 
 # Configuration des valeurs par défaut du serveur (.env)
+DEFAULT_TMDB_KEY = os.getenv('TMDB_KEY')
+DEFAULT_SHAREWOOD_PASSKEY = os.getenv('SHAREWOOD_PASSKEY')
+DEFAULT_ABN_USERNAME = os.getenv('ABN_USERNAME')
+DEFAULT_ABN_PASSWORD = os.getenv('ABN_PASSWORD')
+DEFAULT_LACALE_APIKEY = os.getenv('LACALE_APIKEY') or os.getenv('LACALE_PASSKEY')
+DEFAULT_C411_APIKEY = os.getenv('C411_APIKEY')
+DEFAULT_TORR9_PASSKEY = os.getenv('TORR9_PASSKEY')
+
 SERVER_CONFIG_DEFAULTS = [
     {'keys': ['tmdb_key'], 'values': [DEFAULT_TMDB_KEY], 'label': 'TMDB', 'ui_field': 'tmdb_key'},
     {'keys': ['sharewood_passkey'], 'values': [DEFAULT_SHAREWOOD_PASSKEY], 'label': 'Sharewood', 'ui_field': 'sharewood_passkey'},
@@ -84,9 +92,14 @@ SERVER_CONFIG_DEFAULTS = [
 ]
 
 # Logging des valeurs par défaut actives
+logging.info(f"qBittorrent enabled: {QBITTORRENT_ENABLE}")
+if MANIFEST_TITLE_SUFFIX:
+    logging.info(f"Manifest title suffix: {MANIFEST_TITLE_SUFFIX}")
+if MANIFEST_BLURB:
+    logging.info(f"Manifest blurb configured")
 defaults_active = [d['label'] for d in SERVER_CONFIG_DEFAULTS if all(d['values'])]
 if defaults_active:
-    logging.info(f"Server-side defaults active: {', '.join(defaults_active)}")
+    logging.info(f"Server-side default trackers: {', '.join(defaults_active)}")
 
 # ============================================================================
 # Middleware
@@ -149,7 +162,7 @@ async def handle_configure(request):
         qbit_enabled_js = 'true' if QBITTORRENT_ENABLE else 'false'
         content = content.replace('const qbittorrentEnabled = true;', f'const qbittorrentEnabled = {qbit_enabled_js};')
         
-        # Signalisation des champs ayant des valeurs par défaut sur le serveur (noms seulement)
+        # Trackers ayant des valeurs par défaut sur le serveur
         server_config_fields = [d['ui_field'] for d in SERVER_CONFIG_DEFAULTS if all(d['values'])]
         
         content = content.replace('const serverConfigFields = [];', f'const serverConfigFields = {json.dumps(server_config_fields)};')
