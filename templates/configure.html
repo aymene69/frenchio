@@ -1246,7 +1246,7 @@
             const maxSize = parseInt(document.getElementById('maxSize').value) || 0;
             const sortBy = document.getElementById('sortBy').value;
 
-            if (!tmdbKey) {
+            if (!tmdbKey && !serverConfigFields.includes('tmdb_key')) {
                 alert("Erreur : La clé TMDB est obligatoire.");
                 return;
             }
