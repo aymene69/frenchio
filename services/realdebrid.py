@@ -1,6 +1,7 @@
 import aiohttp
 import logging
 import asyncio
+import os
 
 
 class RealDebridService:
@@ -10,7 +11,7 @@ class RealDebridService:
     avec un endpoint check_magnets en batch (pas de rate-limit).
     """
 
-    STREMTHRU_URL = "https://stremthru.13377001.xyz"
+    STREMTHRU_URL = os.getenv("STREMTHRU_URL", "https://stremthru.13377001.xyz")
 
     def __init__(self, api_key):
         self.api_key = api_key
