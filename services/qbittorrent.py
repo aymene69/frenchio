@@ -2,9 +2,10 @@ import qbittorrentapi
 import logging
 import time
 import urllib.parse
+import os
 
 class QBittorrentService:
-    def __init__(self, host, username, password, public_url_base):
+    def __init__(self, host, username, password, public_url_base, category=None):
         """
         Initialise le client qBittorrent avec la librairie officielle qbittorrent-api
         Docs: https://pypi.org/project/qbittorrent-api/
@@ -14,6 +15,7 @@ class QBittorrentService:
         
         self.host = host.rstrip('/')
         self.public_url_base = public_url_base.rstrip('/')
+        self.category = category or os.getenv('QBITTORRENT_CATEGORY', 'frenchio')
         
         # Créer le client qBittorrent
         try:
@@ -65,11 +67,27 @@ class QBittorrentService:
             return None
             
         try:
+            # Activer la pré-allocation globale (requis pour la lecture en cours de téléchargement)
+            try:
+                self.client.app_set_preferences(prefs={'preallocate_all': True})
+                logging.info("🔧 Global preallocation enabled in qBittorrent")
+            except Exception as e:
+                logging.warning(f"Could not enable global preallocation: {e}")
+
+            # Créer la catégorie si elle n'existe pas
+            try:
+                self.client.torrents_create_category(name=self.category)
+            except qbittorrentapi.Conflict409Error:
+                pass
+            except Exception as e:
+                logging.warning(f"Could not create/verify category '{self.category}': {e}")
+
             # Options de streaming (l'API les supporte bien)
             streaming_opts = {
                 'is_paused': False,
                 'is_sequential_download': True,
-                'is_first_last_piece_priority': True
+                'is_first_last_piece_priority': True,
+                'category': self.category
             }
             
             if is_file:
@@ -121,15 +139,15 @@ class QBittorrentService:
             
             logging.info(f"🔧 Forcing streaming options for torrent {h[:8]}...")
             
-            # Récupérer l'état actuel
-            props = self.client.torrents_properties(torrent_hash=h)
-            
-            # Debug: Afficher toutes les clés disponibles
-            logging.debug(f"   Available properties: {list(props.keys())}")
-            
-            # Essayer différents noms possibles (props est un dict-like object)
-            seq_enabled = props.get('seq_dl', False) or props.get('is_sequential_download', False) or props.get('sequential_download', False)
-            first_last_enabled = props.get('f_l_piece_prio', False) or props.get('is_first_last_piece_priority', False) or props.get('first_last_piece_priority', False)
+            # Récupérer l'état actuel depuis torrents_info
+            torrents = self.client.torrents_info(torrent_hashes=h)
+            if torrents:
+                torrent = torrents[0]
+                seq_enabled = torrent.get('seq_dl', False)
+                first_last_enabled = torrent.get('f_l_piece_prio', False)
+            else:
+                seq_enabled = False
+                first_last_enabled = False
             
             logging.info(f"   Current state: sequential={seq_enabled}, first_last={first_last_enabled}")
             
@@ -272,19 +290,19 @@ class QBittorrentService:
             
             logging.info(f"🔍 Verifying streaming options for torrent {h[:8]}...")
             
-            # Récupérer les propriétés du torrent
-            props = self.client.torrents_properties(torrent_hash=h)
-            
-            # Debug: Afficher toutes les clés disponibles
-            logging.debug(f"   Available properties: {list(props.keys())}")
-            
-            # Essayer différents noms possibles
-            seq_enabled = props.get('seq_dl', False) or props.get('is_sequential_download', False) or props.get('sequential_download', False)
-            first_last_enabled = props.get('f_l_piece_prio', False) or props.get('is_first_last_piece_priority', False) or props.get('first_last_piece_priority', False)
+            # Récupérer les propriétés depuis torrents_info
+            torrents = self.client.torrents_info(torrent_hashes=h)
+            if torrents:
+                torrent = torrents[0]
+                seq_enabled = torrent.get('seq_dl', False)
+                first_last_enabled = torrent.get('f_l_piece_prio', False)
+            else:
+                seq_enabled = False
+                first_last_enabled = False
             
             logging.info(f"📊 Current status (from qBittorrent):")
-            logging.info(f"   props.seq_dl = {seq_enabled} {'✅ ON' if seq_enabled else '❌ OFF'}")
-            logging.info(f"   props.f_l_piece_prio = {first_last_enabled} {'✅ ON' if first_last_enabled else '❌ OFF'}")
+            logging.info(f"   seq_dl = {seq_enabled} {'✅ ON' if seq_enabled else '❌ OFF'}")
+            logging.info(f"   f_l_piece_prio = {first_last_enabled} {'✅ ON' if first_last_enabled else '❌ OFF'}")
             
             # Si l'une des options n'est pas activée, on les force à nouveau
             if not seq_enabled or not first_last_enabled:
@@ -293,9 +311,13 @@ class QBittorrentService:
                 
                 # Vérifier à nouveau
                 time.sleep(0.5)
-                props2 = self.client.torrents_properties(torrent_hash=h)
-                seq2 = props2.get('seq_dl', False) or props2.get('is_sequential_download', False)
-                first_last2 = props2.get('f_l_piece_prio', False) or props2.get('is_first_last_piece_priority', False)
+                torrents2 = self.client.torrents_info(torrent_hashes=h)
+                if torrents2:
+                    t2 = torrents2[0]
+                    seq2 = t2.get('seq_dl', False)
+                    first_last2 = t2.get('f_l_piece_prio', False)
+                else:
+                    seq2, first_last2 = False, False
                 logging.info(f"📊 After second attempt:")
                 logging.info(f"   sequential = {seq2}")
                 logging.info(f"   first_last = {first_last2}")
@@ -348,6 +370,23 @@ class QBittorrentService:
             logging.error("❌ Could not identify target file")
             return None
         
+        # 4.5. Attendre que l'allocation disque et le téléchargement des métadonnées soient terminés
+        # (évite que le lecteur ne se connecte trop tôt et reçoive une erreur 404 du serveur HTTP/WebDAV)
+        logging.info("⏳ Waiting for disk allocation and metadata download to complete...")
+        h = info_hash.lower()
+        for i in range(15):  # Attendre jusqu'à 15 secondes max
+            try:
+                torrents = self.client.torrents_info(torrent_hashes=h)
+                if torrents:
+                    state = torrents[0].get('state', '')
+                    logging.info(f"   Torrent state: {state} ({i+1}/15)")
+                    if state not in ['metaDL', 'allocating']:
+                        logging.info("   ✅ Disk allocation completed (file created on disk)")
+                        break
+            except Exception as e:
+                logging.warning(f"Error checking torrent state: {e}")
+            time.sleep(1.0)
+
         # 5. Construire l'URL de streaming et la retourner IMMÉDIATEMENT
         # Le téléchargement continue en background, le player va lire au fur et à mesure
         safe_path = urllib.parse.quote(target_file)

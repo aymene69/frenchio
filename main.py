@@ -7,7 +7,7 @@ French private/semi-private trackers with AllDebrid integration and qBittorrent
 fallback for non-cached torrents.
 
 Features:
-    - Multi-tracker search (UNIT3D, Sharewood, YGGTorrent, ABNormal)
+    - Multi-tracker search (UNIT3D, YGGTorrent, ABNormal, C411, Torr9)
     - AllDebrid instant caching detection
     - qBittorrent sequential streaming for non-cached torrents
     - Intelligent episode selection in season packs
@@ -34,10 +34,8 @@ from services.alldebrid import AllDebridService
 from services.torbox import TorBoxService
 from services.debridlink import DebridLinkService
 from services.realdebrid import RealDebridService
-from services.sharewood import SharewoodService
 from services.ygg import YggService
 from services.abn import ABNService
-from services.lacale import LaCaleService
 from services.c411 import C411Service
 from services.torr9 import Torr9Service
 from services.qbittorrent import QBittorrentService
@@ -129,7 +127,7 @@ async def handle_configure(request):
             pass
 
     try:
-        async with aiofiles.open('templates/configure.html', mode='r') as f:
+        async with aiofiles.open('templates/configure.html', mode='r', encoding='utf-8') as f:
             content = await f.read()
         
         # Injection de la config pré-remplie dans le JS
@@ -211,7 +209,7 @@ async def handle_manifest(request):
         addon_name += f" {MANIFEST_TITLE_SUFFIX}"
     
     # Description de base (le blurb s'affiche dans la page de config)
-    description = "Stream from French Trackers (UNIT3D, Sharewood, YGG, ABN, LaCale, C411, Torr9) via AllDebrid, TorBox, DebridLink ou qBittorrent"
+    description = "Stream from French Trackers (UNIT3D, YGG, ABN, C411, Torr9) via AllDebrid, TorBox, DebridLink ou qBittorrent"
 
     manifest = {
         "id": "community.aymene69.frenchio",
@@ -358,10 +356,8 @@ async def handle_stream(request):
         return web.json_response({"streams": []})
     
     unit3d_results = []
-    sharewood_results = []
 
-    # 1. Info Média (pour Sharewood) et Conversion ID (pour UNIT3D)
-    # On a besoin des infos textuelles pour Sharewood
+    # 1. Info Média et Conversion ID (pour UNIT3D)
     # On a besoin du TMDB ID pour UNIT3D
     
     # Étape 1 : Find by IMDB ID
@@ -383,7 +379,7 @@ async def handle_stream(request):
                     if resp.status == 200:
                         media_info = await resp.json()
 
-    # 2. Recherche Parallèle (UNIT3D + Sharewood)
+    # 2. Recherche Parallèle (UNIT3D + YGG + ABN + C411 + Torr9)
     tasks = []
 
     # Tâche UNIT3D
@@ -399,30 +395,6 @@ async def handle_stream(request):
         ))
     else:
         logging.info("UNIT3D search skipped (no trackers configured)")
-        async def empty(): return []
-        tasks.append(empty())
-
-    # Tâche Sharewood
-    if config.get('sharewood_passkey') and media_info:
-        logging.info("Starting Sharewood search")
-        sharewood_service = SharewoodService(config.get('sharewood_passkey'))
-        
-        title = media_info.get('title') or media_info.get('name')
-        
-        # Année
-        date = media_info.get('release_date') or media_info.get('first_air_date')
-        year = date.split('-')[0] if date else ""
-        
-        if stream_type == 'movie':
-            tasks.append(sharewood_service.search_movie(title, year))
-        elif stream_type == 'series':
-            tasks.append(sharewood_service.search_series(title, season, episode))
-    else:
-        if not config.get('sharewood_passkey'):
-            logging.info("Sharewood search skipped (no passkey configured)")
-        elif not media_info:
-            logging.info("Sharewood search skipped (media info not found for title)")
-            
         async def empty(): return []
         tasks.append(empty())
 
@@ -466,19 +438,6 @@ async def handle_stream(request):
         async def empty(): return []
         tasks.append(empty())
 
-    # Tâche LaCale
-    lacale_key = config.get('lacale_apikey') or config.get('lacale_passkey')
-    if lacale_key:
-        logging.info("Starting LaCale search")
-        lacale_service = LaCaleService(lacale_key)
-        if stream_type == 'movie':
-            tasks.append(lacale_service.search_movie(target_title, year, tmdb_id=tmdb_id, imdb_id=imdb_id))
-        elif stream_type == 'series':
-            tasks.append(lacale_service.search_series(target_title, season, episode, tmdb_id=tmdb_id, imdb_id=imdb_id))
-    else:
-        async def empty(): return []
-        tasks.append(empty())
-
     # Tâche C411
     if config.get('c411_apikey'):
         logging.info("Starting C411 search")
@@ -512,21 +471,19 @@ async def handle_stream(request):
         for t in unit3d_results:
             t['source'] = 'unit3d'
             
-        sharewood_results = results_list[1] if len(results_list) > 1 else []
-        ygg_results = results_list[2] if len(results_list) > 2 else []
-        abn_results = results_list[3] if len(results_list) > 3 else []
-        lacale_results = results_list[4] if len(results_list) > 4 else []
-        c411_results = results_list[5] if len(results_list) > 5 else []
-        torr9_results = results_list[6] if len(results_list) > 6 else []
+        ygg_results = results_list[1] if len(results_list) > 1 else []
+        abn_results = results_list[2] if len(results_list) > 2 else []
+        c411_results = results_list[3] if len(results_list) > 3 else []
+        torr9_results = results_list[4] if len(results_list) > 4 else []
     finally:
         # Fermer la session ABN proprement
         if abn_service:
             await abn_service.close()
     
-    logging.info(f"Results breakdown: UNIT3D={len(unit3d_results)}, Sharewood={len(sharewood_results)}, YGG={len(ygg_results)}, ABN={len(abn_results)}, LaCale={len(lacale_results)}, C411={len(c411_results)}, Torr9={len(torr9_results)}")
+    logging.info(f"Results breakdown: UNIT3D={len(unit3d_results)}, YGG={len(ygg_results)}, ABN={len(abn_results)}, C411={len(c411_results)}, Torr9={len(torr9_results)}")
     
     # Fusion et Déduplication
-    all_torrents = unit3d_results + sharewood_results + ygg_results + abn_results + lacale_results + c411_results + torr9_results
+    all_torrents = unit3d_results + ygg_results + abn_results + c411_results + torr9_results
     
     # Filtrage par taille si configuré
     max_size_gb = config.get('max_size', 0)
@@ -606,7 +563,7 @@ async def handle_stream(request):
     if not torrents:
         return web.json_response({"streams": []})
 
-    logging.info(f"Total unique torrents (UNIT3D + Sharewood + YGG + ABN + LaCale + C411 + Torr9): {len(torrents)}")
+    logging.info(f"Total unique torrents (UNIT3D + YGG + ABN + C411 + Torr9): {len(torrents)}")
 
     streams = []
     host_url = f"{request.scheme}://{request.host}"
@@ -730,10 +687,8 @@ async def handle_stream(request):
         else:
             clean_name = raw_tracker
 
-        source_prefix = "\n🌲 Sharewood" if torrent.get('source') == 'sharewood' else \
-                       "\n🐝 YGG" if torrent.get('source') == 'ygg' else \
+        source_prefix = "\n🐝 YGG" if torrent.get('source') == 'ygg' else \
                        "\n🎬 ABN" if torrent.get('source') == 'abn' else \
-                       "\n⚓ LaCale" if torrent.get('source') == 'lacale' else \
                        "\n📡 C411" if torrent.get('source') == 'c411' else \
                        "\n🔥 Torr9" if torrent.get('source') == 'torr9' else \
                        f"\n🌐 {clean_name}"
@@ -798,10 +753,8 @@ async def handle_stream(request):
                 else:
                     clean_name = raw_tracker
 
-                source_prefix = "🌲 Sharewood" if torrent.get('source') == 'sharewood' else \
-                               "🐝 YGG" if torrent.get('source') == 'ygg' else \
+                source_prefix = "🐝 YGG" if torrent.get('source') == 'ygg' else \
                                "🎬 ABN" if torrent.get('source') == 'abn' else \
-                               "⚓ LaCale" if torrent.get('source') == 'lacale' else \
                                "📡 C411" if torrent.get('source') == 'c411' else \
                                "🔥 Torr9" if torrent.get('source') == 'torr9' else \
                                f"🌐 {clean_name}"
@@ -922,7 +875,7 @@ async def handle_resolve(request):
         
         if stream_url:
             logging.info(f"qBittorrent stream ready: {stream_url}")
-            raise web.HTTPFound(finalize_stream_url(stream_url, config))
+            raise web.HTTPMovedPermanently(finalize_stream_url(stream_url, config))
         else:
             return web.Response(status=404, text="Could not start qBittorrent stream")
     

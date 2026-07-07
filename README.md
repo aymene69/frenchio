@@ -12,7 +12,7 @@ Suite à la fermeture de YGG aux services de debrid, cet addon permet de continu
 
 ## ✨ Fonctionnalités
 
-- 🔍 **Recherche multi-trackers** : UNIT3D, Sharewood, YGGTorrent, ABNormal, La-Cale
+- 🔍 **Recherche multi-trackers** : UNIT3D, YGGTorrent, ABNormal, C411, Torr9
 - ⚡ **Débridage multi-services** : AllDebrid, TorBox, Debrid-Link - Streaming instantané des torrents cachés
 - proxy **MediaFlow** optionnel : transite le lien final de lecture via votre instance MediaFlow
 - 📥 **qBittorrent Support** : Streaming direct pour les torrents non-cachés
@@ -29,7 +29,6 @@ Suite à la fermeture de YGG aux services de debrid, cet addon permet de continu
 - [TMDB API Key](https://www.themoviedb.org/settings/api) (gratuit)
 - **Au moins un tracker parmi** :
   - Trackers **UNIT3D** (avec API Token)
-  - [Sharewood](https://www.sharewood.tv/) (Passkey)
   - [YGGTorrent](https://www.ygg.re/) (Passkey optionnelle, activé par défaut)
   - [ABNormal](https://abn.lol/) (Username/Password)
 
@@ -105,8 +104,6 @@ Ajoutez un ou plusieurs trackers compatibles UNIT3D :
 
 > **Note** : UNIT3D est une plateforme de tracker BitTorrent. De nombreux trackers français utilisent ce logiciel. L'addon est compatible avec tous les trackers basés sur UNIT3D.
 
-#### Sharewood (Optionnel)
-- **Passkey** : Votre passkey Sharewood (32 caractères)
 
 #### YGGTorrent (Activé par défaut)
 - **Passkey** : Votre passkey YGG (32 caractères) - Optionnelle
@@ -149,9 +146,10 @@ Stremio
    ↓
 Frenchio (recherche parallèle)
    ├─→ Trackers UNIT3D
-   ├─→ Sharewood
    ├─→ YGGTorrent (toujours actif)
-   └─→ ABNormal
+   ├─→ ABNormal
+   ├─→ C411
+   └─→ Torr9
    ↓
 Résultats filtrés
    ↓
@@ -307,6 +305,17 @@ QBITTORRENT_ENABLE=false # Désactive qBittorrent
 
 **Utilité** : Utile pour les hébergeurs qui proposent uniquement le débridage (AllDebrid/TorBox) sans qBittorrent.
 
+### QBITTORRENT_CATEGORY
+
+Définit le nom de la catégorie sous laquelle les torrents sont ajoutés dans qBittorrent.
+
+```bash
+# Valeur par défaut: frenchio
+QBITTORRENT_CATEGORY=frenchio
+```
+
+**Utilité** : Permet d'organiser automatiquement vos téléchargements dans qBittorrent en leur attribuant une catégorie spécifique.
+
 ### MANIFEST_TITLE_SUFFIX
 
 Ajoute un suffixe personnalisé au nom de l'addon dans Stremio.
@@ -389,7 +398,6 @@ frenchio/
 ├── services/
 │   ├── tmdb.py            # Service TMDB (IMDB → TMDB)
 │   ├── unit3d.py          # Client UNIT3D multi-tracker
-│   ├── sharewood.py       # Client Sharewood API
 │   ├── ygg.py             # Client YGGAPI
 │   ├── abn.py             # Client ABNormal
 │   ├── alldebrid.py       # Service AllDebrid (debrid)

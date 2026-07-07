@@ -224,6 +224,35 @@
             box-sizing: border-box;
         }
 
+        .password-input-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .password-input-wrapper input {
+            padding-right: 44px !important;
+        }
+
+        .password-toggle-btn {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .password-toggle-btn:hover {
+            color: var(--primary);
+        }
+
         input[type="text"]:hover,
         input[type="url"]:hover,
         input[type="password"]:hover,
@@ -446,7 +475,7 @@
                 <span class="title-text">Frenchio</span>
                 <span class="version-badge" id="versionBadge"></span>
             </h1>
-            <div class="subtitle">Streamer depuis UNIT3D, Sharewood, YGG, ABN, La-Cale, C411 & Torr9 via AllDebrid,
+            <div class="subtitle">Streamer depuis UNIT3D, YGG, ABN, C411 & Torr9 via AllDebrid,
                 TorBox,
                 Debrid-Link ou
                 qBittorrent</div>
@@ -540,13 +569,23 @@
             <div class="form-group" style="margin-top: 20px;">
                 <label for="mediaflowProxyUrl">URL MediaFlow Proxy <span class="badge">Optionnel</span></label>
                 <input type="url" id="mediaflowProxyUrl" placeholder="https://mediaflow.mondomaine.com">
-                <span class="help-text">Proxy optionnel appliqué au lien final de lecture. Utile si vous faites transiter les streams via MediaFlow.</span>
+                <span class="help-text">Proxy optionnel appliqué au lien final de lecture. Utile si vous faites
+                    transiter les streams via MediaFlow.</span>
             </div>
 
             <div class="form-group">
                 <label for="mediaflowApiPassword">Mot de passe API MediaFlow</label>
-                <input type="password" id="mediaflowApiPassword" placeholder="Laisser vide si non utilisé">
-                <span class="help-text">Optionnel. Sera ajouté à l'URL du proxy si votre instance MediaFlow est protégée.</span>
+                <div class="password-input-wrapper">
+                    <input type="password" id="mediaflowApiPassword" placeholder="Laisser vide si non utilisé">
+                    <button type="button" id="toggleMediaflowPass" class="password-toggle-btn" onclick="togglePasswordVisibility('mediaflowApiPassword', 'toggleMediaflowPass')" title="Afficher/Masquer le mot de passe">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                </div>
+                <span class="help-text">Optionnel. Sera ajouté à l'URL du proxy si votre instance MediaFlow est
+                    protégée.</span>
             </div>
         </div>
 
@@ -572,7 +611,15 @@
                 </div>
                 <div class="form-group" style="flex: 1;">
                     <label for="qbitPass">Mot de passe</label>
-                    <input type="password" id="qbitPass">
+                    <div class="password-input-wrapper">
+                        <input type="password" id="qbitPass">
+                        <button type="button" id="toggleQbitPass" class="password-toggle-btn" onclick="togglePasswordVisibility('qbitPass', 'toggleQbitPass')" title="Afficher/Masquer le mot de passe">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -714,23 +761,6 @@
                     </div>
                 </div>
 
-                <!-- Sharewood -->
-                <div class="provider-card" id="providerSharewood" onclick="toggleProvider('providerSharewood')">
-                    <div class="provider-header">
-                        <span class="provider-name">
-                            <span class="provider-dot"></span>
-                            Sharewood
-                        </span>
-                        <span class="provider-chevron">▼</span>
-                    </div>
-                    <div class="provider-body">
-                        <div class="form-group">
-                            <label for="sharewoodPasskey">Passkey</label>
-                            <input type="text" id="sharewoodPasskey" placeholder="32 caractères"
-                                onclick="event.stopPropagation()">
-                        </div>
-                    </div>
-                </div>
 
                 <!-- ABN -->
                 <div class="provider-card" id="providerAbn" onclick="toggleProvider('providerAbn')">
@@ -749,30 +779,20 @@
                         </div>
                         <div class="form-group">
                             <label for="abnPassword">Mot de passe</label>
-                            <input type="password" id="abnPassword" placeholder="Mot de passe"
-                                onclick="event.stopPropagation()">
+                            <div class="password-input-wrapper" onclick="event.stopPropagation()">
+                                <input type="password" id="abnPassword" placeholder="Mot de passe">
+                                <button type="button" id="toggleAbnPass" class="password-toggle-btn" onclick="togglePasswordVisibility('abnPassword', 'toggleAbnPass')" title="Afficher/Masquer le mot de passe">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                         <span class="help-text">⚠️ ABN ralentit les recherches.</span>
                     </div>
                 </div>
 
-                <!-- La-Cale -->
-                <div class="provider-card" id="providerLacale" onclick="toggleProvider('providerLacale')">
-                    <div class="provider-header">
-                        <span class="provider-name">
-                            <span class="provider-dot"></span>
-                            La-Cale
-                        </span>
-                        <span class="provider-chevron">▼</span>
-                    </div>
-                    <div class="provider-body">
-                        <div class="form-group">
-                            <label for="lacaleApikey">Clé API</label>
-                            <input type="text" id="lacaleApikey" placeholder="Clé API"
-                                onclick="event.stopPropagation()">
-                        </div>
-                    </div>
-                </div>
 
                 <!-- C411 -->
                 <div class="provider-card" id="providerC411" onclick="toggleProvider('providerC411')">
@@ -913,11 +933,9 @@
                 <li class="sortable-item" data-id="unit3d"><span class="drag-handle">≡</span> 🔒 Tous les Trackers
                     UNIT3D</li>
                 <li class="sortable-item" data-id="ygg"><span class="drag-handle">≡</span> 🐝 YGG</li>
-                <li class="sortable-item" data-id="sharewood"><span class="drag-handle">≡</span> 🌲 Sharewood</li>
                 <li class="sortable-item" data-id="torr9"><span class="drag-handle">≡</span> 🔥 Torr9</li>
                 <li class="sortable-item" data-id="abn"><span class="drag-handle">≡</span> 🎬 ABN</li>
                 <li class="sortable-item" data-id="c411"><span class="drag-handle">≡</span> 📡 C411</li>
-                <li class="sortable-item" data-id="lacale"><span class="drag-handle">≡</span> ⚓ La-Cale</li>
             </ul>
         </div>
 
@@ -972,13 +990,28 @@
             card.classList.toggle('expanded');
         }
 
+        function togglePasswordVisibility(inputId, btnId) {
+            const input = document.getElementById(inputId);
+            const btn = document.getElementById(btnId);
+            if (input && btn) {
+                const isPassword = input.type === 'password';
+                input.type = isPassword ? 'text' : 'password';
+                
+                if (isPassword) {
+                    // Show eye closed
+                    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+                } else {
+                    // Show eye open
+                    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+                }
+            }
+        }
+
         function updateProviderActiveStates() {
             // Map: provider card id -> input ids to check
             const providerMap = {
                 'providerYgg': ['yggPasskey'],
-                'providerSharewood': ['sharewoodPasskey'],
                 'providerAbn': ['abnUsername'],
-                'providerLacale': ['lacaleApikey'],
                 'providerC411': ['c411Apikey'],
                 'providerTorr9': ['torr9Passkey']
             };
@@ -1056,18 +1089,16 @@
                 document.getElementById('qbitPublicUrl').value = prefillConfig.qbittorrent.public_url || '';
             }
 
-            document.getElementById('sharewoodPasskey').value = prefillConfig.sharewood_passkey || '';
             // YGG passkey removed
             document.getElementById('abnUsername').value = prefillConfig.abn_username || '';
             document.getElementById('abnPassword').value = prefillConfig.abn_password || '';
-            document.getElementById('lacaleApikey').value = prefillConfig.lacale_apikey || '';
             document.getElementById('c411Apikey').value = prefillConfig.c411_apikey || '';
             document.getElementById('torr9Passkey').value = prefillConfig.torr9_passkey || '';
 
             // Mettre à jour les états actifs des provider cards
             updateProviderActiveStates();
             // Ouvrir automatiquement les cards remplies
-            ['providerYgg', 'providerSharewood', 'providerAbn', 'providerLacale', 'providerC411', 'providerTorr9'].forEach(id => {
+            ['providerYgg', 'providerAbn', 'providerC411', 'providerTorr9'].forEach(id => {
                 const card = document.getElementById(id);
                 if (card && card.classList.contains('active') && id !== 'providerYgg') {
                     card.classList.add('expanded');
@@ -1195,11 +1226,9 @@
 
             const hasQbit = qbitUrl && qbitPublicUrl;
 
-            const sharewoodPasskey = document.getElementById('sharewoodPasskey').value.trim();
             // YGG est toujours inclus sans passkey
             const abnUsername = document.getElementById('abnUsername').value.trim();
             const abnPassword = document.getElementById('abnPassword').value.trim();
-            const lacaleApikey = document.getElementById('lacaleApikey').value.trim();
             const c411Apikey = document.getElementById('c411Apikey').value.trim();
             const torr9Passkey = document.getElementById('torr9Passkey').value.trim();
             const maxSize = parseInt(document.getElementById('maxSize').value) || 0;
@@ -1234,9 +1263,10 @@
             });
 
             // YGG est toujours actif, pas besoin de vérifier
-            // Les utilisateurs peuvent utiliser YGG sans passkey avec les services de debrid
-            if (trackers.length === 0 && !sharewoodPasskey && !abnUsername && !alldebridKey && !torboxKey && !debridlinkKey && !realdebridKey) {
-                alert("Attention : Sans tracker configuré ni service de debrid, Frenchio ne retournera que les résultats publics de YGG.");
+            // Les utilisateurs peuvent utiliser YGG sans passkey avec les services de debrid ou qBittorrent
+            if (trackers.length === 0 && !abnUsername && !c411Apikey && !torr9Passkey &&
+                !alldebridKey && !torboxKey && !debridlinkKey && !realdebridKey && !hasQbit) {
+                alert("Attention : Sans tracker configuré, debrideur ou client torrent (qBittorrent), Frenchio ne retournera que les résultats publics de YGG.");
                 return;
             }
 
@@ -1251,10 +1281,8 @@
                 debridlink_key: debridlinkKey,
                 realdebrid_key: realdebridKey,
                 trackers: trackers,
-                sharewood_passkey: sharewoodPasskey,
                 abn_username: abnUsername,
                 abn_password: abnPassword,
-                lacale_apikey: lacaleApikey,
                 c411_apikey: c411Apikey,
                 torr9_passkey: torr9Passkey,
                 max_size: maxSize,
