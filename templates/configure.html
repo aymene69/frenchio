@@ -566,6 +566,28 @@
                         target="_blank">Obtenir ma clé</a></span>
             </div>
 
+            <div id="stremthruGroup" style="display: none;">
+                <div class="form-group" style="margin-top: 20px;">
+                    <label for="stremthruUrl">URL StremThru <span class="badge">Optionnel</span></label>
+                    <input type="url" id="stremthruUrl" placeholder="https://stremthru.mondomaine.com">
+                    <span class="help-text">Proxy les appels à l'API du débrideur via
+                        <a href="https://github.com/MunifTanjim/stremthru" target="_blank">StremThru</a>.
+                        Utile si l'IP du serveur Frenchio est bloquée par le débrideur
+                        (ex: AllDebrid qui refuse les IP de datacenter/VPS).</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="stremthruAuth">Identifiants StremThru (user:pass)</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="stremthruAuth" placeholder="Laisser vide si instance non protégée">
+                        <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('stremthruAuth', this)" title="Afficher/Masquer">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
+                    <span class="help-text">Optionnel. Requis si votre instance StremThru est protégée (variable <code>STREMTHRU_AUTH</code>), au format <code>utilisateur:motdepasse</code>.</span>
+                </div>
+            </div>
+
             <div class="form-group" style="margin-top: 20px;">
                 <label for="mediaflowProxyUrl">URL MediaFlow Proxy <span class="badge">Optionnel</span></label>
                 <input type="url" id="mediaflowProxyUrl" placeholder="https://mediaflow.mondomaine.com">
@@ -1044,6 +1066,10 @@
                 selectedService === 'debridlink' ? 'block' : 'none';
             document.getElementById('realdebridKeyGroup').style.display =
                 selectedService === 'realdebrid' ? 'block' : 'none';
+
+            // StremThru n'a de sens qu'avec un service de débridage
+            document.getElementById('stremthruGroup').style.display =
+                selectedService !== 'none' ? 'block' : 'none';
         }
 
         document.querySelectorAll('input[name="debridService"]').forEach(radio => {
@@ -1072,6 +1098,11 @@
             }
 
             updateDebridFields();
+
+            if (prefillConfig.stremthru) {
+                document.getElementById('stremthruUrl').value = prefillConfig.stremthru.url || '';
+                document.getElementById('stremthruAuth').value = prefillConfig.stremthru.auth || '';
+            }
 
             if (prefillConfig.mediaflow) {
                 document.getElementById('mediaflowProxyUrl').value = prefillConfig.mediaflow.proxy_url || '';
@@ -1220,6 +1251,8 @@
             const qbitPublicUrl = document.getElementById('qbitPublicUrl').value.trim();
             const mediaflowProxyUrl = document.getElementById('mediaflowProxyUrl').value.trim().replace(/\/$/, '');
             const mediaflowApiPassword = document.getElementById('mediaflowApiPassword').value.trim();
+            const stremthruUrl = document.getElementById('stremthruUrl').value.trim().replace(/\/$/, '');
+            const stremthruAuth = document.getElementById('stremthruAuth').value.trim();
 
             const hasQbit = qbitUrl && qbitPublicUrl;
 
@@ -1284,6 +1317,10 @@
                 max_size: maxSize,
                 sort_by: sortBy,
                 providers_order: providersOrder,
+                stremthru: (stremthruUrl && selectedDebrid !== 'none') ? {
+                    url: stremthruUrl,
+                    auth: stremthruAuth
+                } : null,
                 mediaflow: mediaflowProxyUrl ? {
                     proxy_url: mediaflowProxyUrl,
                     api_password: mediaflowApiPassword

@@ -20,6 +20,7 @@ Repository: https://github.com/aymene69/frenchio
 """
 
 import base64
+import ipaddress
 import json
 import os
 import logging
@@ -39,6 +40,7 @@ from services.abn import ABNService
 from services.c411 import C411Service
 from services.torr9 import Torr9Service
 from services.qbittorrent import QBittorrentService
+from services.stremthru import StremThruService, STREMTHRU_STORES
 from services.tr4ker import Tr4kerService
 from utils import format_size, parse_torrent_name, check_season_episode, check_title_match, is_video_file
 
@@ -162,6 +164,51 @@ def decode_config(config_str):
     except Exception as e:
         logging.error(f"Config Decode Error: {e}")
         return None
+
+
+def get_stremthru_url(config):
+    """Retourne l'URL StremThru configurée (ou '' si absente)."""
+    stremthru_config = config.get('stremthru') or {}
+    return (stremthru_config.get('url') or '').strip().rstrip('/')
+
+
+def get_client_ip(request):
+    """
+    Récupère l'IP publique du client (lecteur Stremio) pour la transmettre
+    à StremThru, qui la forwarde au débrideur (lien généré pour la bonne IP).
+    """
+    forwarded = request.headers.get('X-Forwarded-For', '')
+    ip = forwarded.split(',')[0].strip() if forwarded else request.remote
+
+    try:
+        if ip and ipaddress.ip_address(ip).is_global:
+            return ip
+    except ValueError:
+        pass
+    return None
+
+
+def build_stremthru_service(config, store_name, request=None):
+    """
+    Construit un StremThruService pour le débrideur donné, ou None si
+    StremThru n'est pas configuré ou si la clé du débrideur est absente.
+    """
+    stremthru_url = get_stremthru_url(config)
+    if not stremthru_url or store_name not in STREMTHRU_STORES:
+        return None
+
+    api_key = (config.get(STREMTHRU_STORES[store_name]) or '').strip()
+    if not api_key:
+        return None
+
+    stremthru_config = config.get('stremthru') or {}
+    return StremThruService(
+        stremthru_url,
+        store_name,
+        api_key,
+        auth=(stremthru_config.get('auth') or '').strip() or None,
+        client_ip=get_client_ip(request) if request else None
+    )
 
 
 def build_mediaflow_proxy_url(stream_url, mediaflow_config, filename=None):
@@ -331,6 +378,17 @@ async def handle_stream(request):
     
     if not alldebrid_service and not torbox_service and not debridlink_service and not realdebrid_service:
         logging.info("No debrid service configured, using qBittorrent fallback")
+
+    # StremThru : proxy optionnel des appels à l'API du débrideur
+    debrid_store = "alldebrid" if alldebrid_service else \
+                   "torbox" if torbox_service else \
+                   "debridlink" if debridlink_service else \
+                   "realdebrid" if realdebrid_service else None
+    stremthru_service = None
+    if debrid_store:
+        stremthru_service = build_stremthru_service(config, debrid_store, request)
+        if stremthru_service:
+            logging.info(f"StremThru proxy enabled for {debrid_store} ({get_stremthru_url(config)})")
     
     # qBittorrent optionnel
     qbit_service = None
@@ -594,8 +652,14 @@ async def handle_stream(request):
     # 3. Check disponibilité sur les services de débridage
     availability = {}
     debrid_provider = None
-    
-    if alldebrid_service:
+
+    if stremthru_service:
+        hashes = [t['info_hash'] for t in torrents if t.get('info_hash')]
+        availability = await stremthru_service.check_availability(hashes)
+        debrid_provider = debrid_store
+        logging.info(f"StremThru [{debrid_store}]: {len([v for v in availability.values() if v])} cached torrents")
+
+    elif alldebrid_service:
         hashes = [t['info_hash'] for t in torrents if t.get('info_hash')]
         availability = await alldebrid_service.check_availability(hashes)
         debrid_provider = "alldebrid"
@@ -640,7 +704,10 @@ async def handle_stream(request):
             continue
             
         # Nettoyer le hash
-        if alldebrid_service:
+        if stremthru_service:
+            clean_hash = stremthru_service._clean_hash(info_hash)
+            is_cached = availability.get(clean_hash, False)
+        elif alldebrid_service:
             clean_hash = alldebrid_service._clean_hash(info_hash)
             is_cached = availability.get(clean_hash, False)
         elif torbox_service:
@@ -927,6 +994,26 @@ async def handle_resolve(request):
             raise web.HTTPMovedPermanently(finalize_stream_url(stream_url, config))
         else:
             return web.Response(status=404, text="Could not start qBittorrent stream")
+
+    # === MODE StremThru (proxy API débrideur) ===
+    elif service_name in STREMTHRU_STORES and get_stremthru_url(config):
+        logging.info(f"StremThru resolve [{service_name}]: hash={info_hash}, season={season}, episode={episode}")
+
+        stremthru_service = build_stremthru_service(config, service_name, request)
+        if not stremthru_service:
+            return web.Response(status=400, text=f"{service_name} not configured")
+
+        stream_url = await stremthru_service.unlock_magnet(
+            info_hash,
+            season=int(season) if season else None,
+            episode=int(episode) if episode else None,
+            media_type=media_type
+        )
+
+        if stream_url:
+            raise web.HTTPMovedPermanently(finalize_stream_url(stream_url, config))
+        else:
+            return web.Response(status=404, text="Could not resolve stream via StremThru")
 
     # === MODE AllDebrid ===
     elif service_name == 'alldebrid':
