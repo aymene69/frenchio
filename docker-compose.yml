@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   frenchio:
-    image: ghcr.io/aymene69/frenchio:latest
+    image: ghcr.io/vatax3/frenchio:latest
     container_name: frenchio-addon
     ports:
       - "7777:7777"
