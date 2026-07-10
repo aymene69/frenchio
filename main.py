@@ -62,7 +62,7 @@ if HTTP_PROXY or HTTPS_PROXY:
         logging.info(f"  HTTPS_PROXY: {HTTPS_PROXY}")
 
 # Version de l'application
-APP_VERSION = "1.5.2"
+APP_VERSION = "1.6.0"
 
 # Stremio Addons Config (signature)
 STREMIO_ADDONS_CONFIG = {
@@ -379,16 +379,21 @@ async def handle_stream(request):
     if not alldebrid_service and not torbox_service and not debridlink_service and not realdebrid_service:
         logging.info("No debrid service configured, using qBittorrent fallback")
 
-    # StremThru : proxy optionnel des appels à l'API du débrideur
-    debrid_store = "alldebrid" if alldebrid_service else \
-                   "torbox" if torbox_service else \
-                   "debridlink" if debridlink_service else \
-                   "realdebrid" if realdebrid_service else None
-    stremthru_service = None
-    if debrid_store:
-        stremthru_service = build_stremthru_service(config, debrid_store, request)
-        if stremthru_service:
-            logging.info(f"StremThru proxy enabled for {debrid_store} ({get_stremthru_url(config)})")
+    # Services de débridage actifs : [(nom, service)] — multi-débrideurs supporté,
+    # les liens de chaque service configuré seront proposés dans Stremio.
+    # Si StremThru est configuré, chaque service est remplacé par son proxy StremThru.
+    debrid_backends = []
+    for store_name, native_service in (
+        ("alldebrid", alldebrid_service),
+        ("torbox", torbox_service),
+        ("debridlink", debridlink_service),
+        ("realdebrid", realdebrid_service),
+    ):
+        if native_service:
+            stremthru_service = build_stremthru_service(config, store_name, request)
+            if stremthru_service:
+                logging.info(f"StremThru proxy enabled for {store_name} ({get_stremthru_url(config)})")
+            debrid_backends.append((store_name, stremthru_service or native_service))
     
     # qBittorrent optionnel
     qbit_service = None
@@ -649,91 +654,71 @@ async def handle_stream(request):
     streams = []
     host_url = f"{request.scheme}://{request.host}"
     
-    # 3. Check disponibilité sur les services de débridage
-    availability = {}
-    debrid_provider = None
+    # 3. Check disponibilité sur tous les services de débridage configurés (en parallèle)
+    availability_by_provider = {}
 
-    if stremthru_service:
+    if debrid_backends:
         hashes = [t['info_hash'] for t in torrents if t.get('info_hash')]
-        availability = await stremthru_service.check_availability(hashes)
-        debrid_provider = debrid_store
-        logging.info(f"StremThru [{debrid_store}]: {len([v for v in availability.values() if v])} cached torrents")
 
-    elif alldebrid_service:
-        hashes = [t['info_hash'] for t in torrents if t.get('info_hash')]
-        availability = await alldebrid_service.check_availability(hashes)
-        debrid_provider = "alldebrid"
-        logging.info(f"AllDebrid: {len([v for v in availability.values() if v])} cached torrents")
-    
-    elif torbox_service:
-        # TorBox check (en parallèle pour la vitesse)
-        hashes = [t['info_hash'] for t in torrents if t.get('info_hash')]
-        # Effectuer toutes les vérifications en parallèle
-        results = await asyncio.gather(
-            *[torbox_service.check_availability(h) for h in hashes],
-            return_exceptions=True
+        async def check_provider(name, service):
+            try:
+                if name == 'torbox' and not isinstance(service, StremThruService):
+                    # TorBox natif vérifie hash par hash (en parallèle pour la vitesse)
+                    results = await asyncio.gather(
+                        *[service.check_availability(h) for h in hashes],
+                        return_exceptions=True
+                    )
+                    return name, {
+                        h.lower().strip(): bool(r)
+                        for h, r in zip(hashes, results)
+                        if not isinstance(r, Exception)
+                    }
+                return name, await service.check_availability(hashes)
+            except Exception as e:
+                logging.error(f"{name}: availability check failed: {e}")
+                return name, {}
+
+        provider_results = await asyncio.gather(
+            *[check_provider(name, service) for name, service in debrid_backends]
         )
-        # Construire le dictionnaire de disponibilité
-        for h, result in zip(hashes, results):
-            if not isinstance(result, Exception) and result:
-                availability[h] = result
-        debrid_provider = "torbox"
-        logging.info(f"TorBox: {len([v for v in availability.values() if v])} cached torrents")
-    
-    elif debridlink_service:
-        # DebridLink check (en parallèle)
-        hashes = [t['info_hash'] for t in torrents if t.get('info_hash')]
-        availability = await debridlink_service.check_availability(hashes)
-        debrid_provider = "debridlink"
-        logging.info(f"DebridLink: {len([v for v in availability.values() if v])} cached torrents")
-    
-    elif realdebrid_service:
-        # Real-Debrid check
-        hashes = [t['info_hash'] for t in torrents if t.get('info_hash')]
-        availability = await realdebrid_service.check_availability(hashes)
-        debrid_provider = "realdebrid"
-        logging.info(f"Real-Debrid: {len([v for v in availability.values() if v])} cached torrents")
+        for name, avail in provider_results:
+            availability_by_provider[name] = avail
+            logging.info(f"{name}: {len([v for v in avail.values() if v])} cached torrents")
 
     # 4. Générer les streams
+    # cached_torrents : un élément par couple (torrent, débrideur) où il est en cache,
+    # pour proposer les liens de tous les débrideurs configurés (multi-débrideurs)
     cached_torrents = []
     uncached_torrents = []
-    
+
     for torrent in torrents:
         info_hash = torrent.get('info_hash')
         if not info_hash:
             continue
-            
-        # Nettoyer le hash
-        if stremthru_service:
-            clean_hash = stremthru_service._clean_hash(info_hash)
-            is_cached = availability.get(clean_hash, False)
-        elif alldebrid_service:
-            clean_hash = alldebrid_service._clean_hash(info_hash)
-            is_cached = availability.get(clean_hash, False)
-        elif torbox_service:
-            clean_hash = info_hash.lower().strip()
-            is_cached = availability.get(clean_hash, False)
-        elif debridlink_service:
-            clean_hash = info_hash.lower().strip()
-            is_cached = availability.get(clean_hash, False)
-        elif realdebrid_service:
-            clean_hash = info_hash.lower().strip()
-            is_cached = availability.get(clean_hash, False)
+
+        cached_on = []
+        for name, service in debrid_backends:
+            # Nettoyer le hash (AllDebrid/StremThru ont leur propre logique)
+            if hasattr(service, '_clean_hash'):
+                clean_hash = service._clean_hash(info_hash)
+            else:
+                clean_hash = info_hash.lower().strip()
+
+            if availability_by_provider.get(name, {}).get(clean_hash, False):
+                cached_on.append((name, clean_hash))
+
+        if cached_on:
+            for name, clean_hash in cached_on:
+                cached_torrents.append((torrent, clean_hash, name))
         else:
-            clean_hash = info_hash.lower().strip()
-            is_cached = False
-        
-        if is_cached:
-            cached_torrents.append((torrent, clean_hash))
-        else:
-            uncached_torrents.append((torrent, clean_hash))
+            uncached_torrents.append((torrent, info_hash.lower().strip()))
 
     # Application du Tri
     sort_by = config.get('sort_by', 'tracker_priority')
     
     if sort_by == 'size_asc':
         def get_sort_size(item):
-            torrent, _ = item
+            torrent = item[0]
             return torrent.get('size', 0)
         
         cached_torrents.sort(key=get_sort_size)
@@ -741,7 +726,7 @@ async def handle_stream(request):
         
     elif sort_by == 'size_desc':
         def get_sort_size(item):
-            torrent, _ = item
+            torrent = item[0]
             return torrent.get('size', 0)
         
         cached_torrents.sort(key=get_sort_size, reverse=True)
@@ -752,7 +737,7 @@ async def handle_stream(request):
         providers_order = config.get('providers_order', [])
         if providers_order:
             def get_sort_key(item):
-                torrent, _ = item
+                torrent = item[0]
                 source = torrent.get('source', '')
                 try:
                     return providers_order.index(source)
@@ -766,7 +751,11 @@ async def handle_stream(request):
     logging.info(f"Cached: {len(cached_torrents)}, Uncached: {len(uncached_torrents)}")
     
     # 4a. Streams débridés (cachés)
-    for torrent, clean_hash in cached_torrents:
+    debrid_extensions = {"alldebrid": "AD", "torbox": "TB", "debridlink": "DL", "realdebrid": "RD"}
+    # Le tag [AD]/[TB]/... n'est affiché que si plusieurs débrideurs sont configurés
+    show_provider_tag = len(debrid_backends) > 1
+
+    for torrent, clean_hash, debrid_provider in cached_torrents:
         # Extraire un nom propre pour les trackers UNIT3D (tracker_name = URL)
         raw_tracker = torrent.get('tracker_name', 'UNIT3D')
         if raw_tracker.startswith('http'):
@@ -788,17 +777,19 @@ async def handle_stream(request):
         
         provider_emoji = "⚡"  # Éclair pour tous les services de débridage
         title = f"{provider_emoji} {meta['name']}\n{torrent.get('name')}\n💾 {size_str}"
-        
-        # URL de résolution (utilise le provider configuré)
+
+        # URL de résolution (utilise le provider où ce torrent est en cache)
         resolve_url = f"{host_url}/{config_str}/resolve/{debrid_provider}/{clean_hash}"
-        
+
         if season is not None and episode is not None:
             resolve_url += f"?season={season}&episode={episode}"
         elif stream_type == 'movie':
             resolve_url += "?type=movie"
 
+        provider_tag = f" [{debrid_extensions.get(debrid_provider, debrid_provider.upper())}]" if show_provider_tag else ""
+
         streams.append({
-            "name": f"Frenchio{source_prefix}",
+            "name": f"Frenchio{provider_tag}{source_prefix}",
             "title": title,
             "url": resolve_url,
             "filename": torrent.get('name', ''),
@@ -824,7 +815,7 @@ async def handle_stream(request):
         if cached_torrents:
             logging.info(f"qBittorrent: Skipping {len(uncached_torrents)} uncached torrents (cached results available)")
         else:
-            limit = 10 if (alldebrid_service or torbox_service or debridlink_service or realdebrid_service) else 25  # Plus de résultats si pas de debrid
+            limit = 10 if debrid_backends else 25  # Plus de résultats si pas de debrid
             logging.info(f"qBittorrent: Processing {min(len(uncached_torrents), limit)} torrents (out of {len(uncached_torrents)} available)")
             
             qbit_added = 0

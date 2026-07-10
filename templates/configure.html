@@ -513,26 +513,26 @@
             </div>
 
             <div class="form-group">
-                <label>Service de débridage <span class="badge">Optionnel</span></label>
+                <label>Services de débridage <span class="badge">Optionnel</span></label>
+                <span class="help-text" style="display: block; margin-bottom: 10px;">
+                    Cochez un ou plusieurs services : les liens de chaque débrideur coché seront
+                    proposés dans Stremio. Aucun coché = qBittorrent seulement.
+                </span>
                 <div style="margin-bottom: 15px;">
-                    <label id="debridNoneLabel" class="option-tile">
-                        <input type="radio" name="debridService" value="none" id="debridNone" checked>
-                        <span>Aucun (qBittorrent seulement)</span>
-                    </label>
                     <label class="option-tile">
-                        <input type="radio" name="debridService" value="alldebrid" id="debridAlldebrid">
+                        <input type="checkbox" name="debridServices" value="alldebrid" id="debridAlldebrid">
                         <span>AllDebrid</span>
                     </label>
                     <label class="option-tile">
-                        <input type="radio" name="debridService" value="torbox" id="debridTorbox">
+                        <input type="checkbox" name="debridServices" value="torbox" id="debridTorbox">
                         <span>TorBox</span>
                     </label>
                     <label class="option-tile">
-                        <input type="radio" name="debridService" value="debridlink" id="debridDebridlink">
+                        <input type="checkbox" name="debridServices" value="debridlink" id="debridDebridlink">
                         <span>Debrid-Link</span>
                     </label>
                     <label class="option-tile">
-                        <input type="radio" name="debridService" value="realdebrid" id="debridRealdebrid">
+                        <input type="checkbox" name="debridServices" value="realdebrid" id="debridRealdebrid">
                         <span>Real-Debrid</span>
                     </label>
                 </div>
@@ -1054,48 +1054,42 @@
             input.addEventListener('input', updateProviderActiveStates);
         });
 
-        // Gestion des radio buttons pour le service de débridage
+        // Gestion des checkboxes des services de débridage (multi-sélection possible)
+        const DEBRID_SERVICES = [
+            { id: 'debridAlldebrid', group: 'alldebridKeyGroup', key: 'alldebridKey', configKey: 'alldebrid_key', label: 'AllDebrid' },
+            { id: 'debridTorbox', group: 'torboxKeyGroup', key: 'torboxKey', configKey: 'torbox_key', label: 'TorBox' },
+            { id: 'debridDebridlink', group: 'debridlinkKeyGroup', key: 'debridlinkKey', configKey: 'debridlink_key', label: 'Debrid-Link' },
+            { id: 'debridRealdebrid', group: 'realdebridKeyGroup', key: 'realdebridKey', configKey: 'realdebrid_key', label: 'Real-Debrid' }
+        ];
+
         function updateDebridFields() {
-            const selectedService = document.querySelector('input[name="debridService"]:checked').value;
+            let anyChecked = false;
+            DEBRID_SERVICES.forEach(s => {
+                const checked = document.getElementById(s.id).checked;
+                document.getElementById(s.group).style.display = checked ? 'block' : 'none';
+                if (checked) anyChecked = true;
+            });
 
-            document.getElementById('alldebridKeyGroup').style.display =
-                selectedService === 'alldebrid' ? 'block' : 'none';
-            document.getElementById('torboxKeyGroup').style.display =
-                selectedService === 'torbox' ? 'block' : 'none';
-            document.getElementById('debridlinkKeyGroup').style.display =
-                selectedService === 'debridlink' ? 'block' : 'none';
-            document.getElementById('realdebridKeyGroup').style.display =
-                selectedService === 'realdebrid' ? 'block' : 'none';
-
-            // StremThru n'a de sens qu'avec un service de débridage
-            document.getElementById('stremthruGroup').style.display =
-                selectedService !== 'none' ? 'block' : 'none';
+            // StremThru n'a de sens qu'avec au moins un service de débridage
+            document.getElementById('stremthruGroup').style.display = anyChecked ? 'block' : 'none';
         }
 
-        document.querySelectorAll('input[name="debridService"]').forEach(radio => {
-            radio.addEventListener('change', updateDebridFields);
+        document.querySelectorAll('input[name="debridServices"]').forEach(cb => {
+            cb.addEventListener('change', updateDebridFields);
         });
 
         // Chargement initial
         if (prefillConfig && Object.keys(prefillConfig).length > 0) {
             document.getElementById('tmdbKey').value = prefillConfig.tmdb_key || '';
 
-            // Détecter quel service est configuré
-            if (prefillConfig.alldebrid_key && prefillConfig.alldebrid_key.trim()) {
-                document.getElementById('debridAlldebrid').checked = true;
-                document.getElementById('alldebridKey').value = prefillConfig.alldebrid_key;
-            } else if (prefillConfig.torbox_key && prefillConfig.torbox_key.trim()) {
-                document.getElementById('debridTorbox').checked = true;
-                document.getElementById('torboxKey').value = prefillConfig.torbox_key;
-            } else if (prefillConfig.debridlink_key && prefillConfig.debridlink_key.trim()) {
-                document.getElementById('debridDebridlink').checked = true;
-                document.getElementById('debridlinkKey').value = prefillConfig.debridlink_key;
-            } else if (prefillConfig.realdebrid_key && prefillConfig.realdebrid_key.trim()) {
-                document.getElementById('debridRealdebrid').checked = true;
-                document.getElementById('realdebridKey').value = prefillConfig.realdebrid_key;
-            } else {
-                document.getElementById('debridNone').checked = true;
-            }
+            // Détecter les services configurés (multi-sélection possible)
+            DEBRID_SERVICES.forEach(s => {
+                const value = prefillConfig[s.configKey];
+                if (value && value.trim()) {
+                    document.getElementById(s.id).checked = true;
+                    document.getElementById(s.key).value = value;
+                }
+            });
 
             updateDebridFields();
 
@@ -1168,19 +1162,7 @@
             if (qbitSection) {
                 qbitSection.style.display = 'none';
             }
-
-            // Masquer l'option "Aucun (qBittorrent seulement)"
-            const debridNoneLabel = document.getElementById('debridNoneLabel');
-            if (debridNoneLabel) {
-                debridNoneLabel.style.display = 'none';
-            }
-
-            // Si "Aucun" était sélectionné, sélectionner AllDebrid par défaut
-            const debridNone = document.getElementById('debridNone');
-            if (debridNone && debridNone.checked) {
-                document.getElementById('debridAlldebrid').checked = true;
-                updateDebridFields();
-            }
+            // Sans qBittorrent, au moins un débrideur est exigé à la génération du lien
         }
 
         // Afficher le blurb personnalisé si configuré
@@ -1211,38 +1193,23 @@
         function generateLink() {
             const tmdbKey = document.getElementById('tmdbKey').value.trim();
 
-            // Vérifier quel service de débridage est sélectionné
-            const selectedDebrid = document.querySelector('input[name="debridService"]:checked').value;
-            let alldebridKey = '';
-            let torboxKey = '';
-            let debridlinkKey = '';
-            let realdebridKey = '';
+            // Récupérer les services de débridage cochés (multi-sélection possible)
+            const checkedServices = DEBRID_SERVICES.filter(s => document.getElementById(s.id).checked);
+            const debridKeys = {};
 
-            if (selectedDebrid === 'alldebrid') {
-                alldebridKey = document.getElementById('alldebridKey').value.trim();
-                if (!alldebridKey) {
-                    alert("Erreur : Veuillez entrer votre clé API AllDebrid.");
+            for (const s of checkedServices) {
+                const value = document.getElementById(s.key).value.trim();
+                if (!value) {
+                    alert(`Erreur : Veuillez entrer votre clé API ${s.label}.`);
                     return;
                 }
-            } else if (selectedDebrid === 'torbox') {
-                torboxKey = document.getElementById('torboxKey').value.trim();
-                if (!torboxKey) {
-                    alert("Erreur : Veuillez entrer votre clé API TorBox.");
-                    return;
-                }
-            } else if (selectedDebrid === 'debridlink') {
-                debridlinkKey = document.getElementById('debridlinkKey').value.trim();
-                if (!debridlinkKey) {
-                    alert("Erreur : Veuillez entrer votre clé API Debrid-Link.");
-                    return;
-                }
-            } else if (selectedDebrid === 'realdebrid') {
-                realdebridKey = document.getElementById('realdebridKey').value.trim();
-                if (!realdebridKey) {
-                    alert("Erreur : Veuillez entrer votre clé API Real-Debrid.");
-                    return;
-                }
+                debridKeys[s.configKey] = value;
             }
+
+            const alldebridKey = debridKeys.alldebrid_key || '';
+            const torboxKey = debridKeys.torbox_key || '';
+            const debridlinkKey = debridKeys.debridlink_key || '';
+            const realdebridKey = debridKeys.realdebrid_key || '';
 
             // qBit Config
             const qbitUrl = document.getElementById('qbitUrl').value.trim();
@@ -1269,7 +1236,7 @@
                 return;
             }
 
-            if (selectedDebrid === 'none' && !hasQbit) {
+            if (checkedServices.length === 0 && !hasQbit) {
                 if (!qbittorrentEnabled) {
                     alert("Erreur : qBittorrent est désactivé sur ce serveur. Vous devez configurer un service de débridage (AllDebrid, TorBox, Debrid-Link ou Real-Debrid).");
                 } else {
@@ -1317,7 +1284,7 @@
                 max_size: maxSize,
                 sort_by: sortBy,
                 providers_order: providersOrder,
-                stremthru: (stremthruUrl && selectedDebrid !== 'none') ? {
+                stremthru: (stremthruUrl && checkedServices.length > 0) ? {
                     url: stremthruUrl,
                     auth: stremthruAuth
                 } : null,

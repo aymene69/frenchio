@@ -16,6 +16,7 @@ Suite à la fermeture de YGG aux services de debrid, cet addon permet de continu
 - ⚡ **Débridage multi-services** : AllDebrid, TorBox, Debrid-Link - Streaming instantané des torrents cachés
 - proxy **MediaFlow** optionnel : transite le lien final de lecture via votre instance MediaFlow
 - proxy **StremThru** optionnel : transite les appels à l'API du débrideur via votre instance StremThru (contourne les blocages d'IP datacenter, ex. AllDebrid sur VPS)
+- **multi-débrideurs** : configurez plusieurs services à la fois, les liens de chacun sont proposés dans Stremio
 - 📥 **qBittorrent Support** : Streaming direct pour les torrents non-cachés
 - 🎯 **Sélection intelligente** : Détection automatique des épisodes dans les packs de saisons
 - 🌐 **Recherche parallèle** : Requêtes simultanées pour des résultats ultra-rapides
@@ -95,6 +96,10 @@ Ouvrez votre navigateur sur : `http://localhost:7777/configure`
 - **TMDB API Key** : Votre clé API v3 de TheMovieDB
 
 #### Services de débridage (Optionnel - Recommandé)
+Vous pouvez cocher **plusieurs débrideurs simultanément** : le cache est vérifié sur chacun
+en parallèle et les liens de tous les services où le torrent est disponible sont proposés
+dans Stremio (tagués `[AD]`, `[TB]`, `[DL]`, `[RD]`).
+
 - **AllDebrid API Key** : Votre clé API pour le débridage instantané - [Obtenir](https://alldebrid.com/apikeys/)
 - **TorBox API Key** : Alternative à AllDebrid - [Obtenir](https://torbox.app/settings)
 - **Debrid-Link API Key** : Alternative à AllDebrid - [Obtenir](https://debrid-link.com/webapp/apikey)
