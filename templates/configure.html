@@ -833,6 +833,40 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Nyaa -->
+                <div class="provider-card" id="providerNyaa" onclick="toggleProvider('providerNyaa')">
+                    <div class="provider-header">
+                        <span class="provider-name">
+                            <span class="provider-dot"></span>
+                            Nyaa
+                        </span>
+                        <span class="provider-chevron">▼</span>
+                    </div>
+                    <div class="provider-body">
+                        <div class="form-group" style="display:flex; align-items:center; gap:8px; padding-top: 5px;">
+                            <input type="checkbox" id="nyaaEnabled" style="width:auto; margin:0;" onclick="event.stopPropagation()">
+                            <label for="nyaaEnabled" style="margin:0;">Activer Nyaa</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NekoBT -->
+                <div class="provider-card" id="providerNeko" onclick="toggleProvider('providerNeko')">
+                    <div class="provider-header">
+                        <span class="provider-name">
+                            <span class="provider-dot"></span>
+                            NekoBT
+                        </span>
+                        <span class="provider-chevron">▼</span>
+                    </div>
+                    <div class="provider-body">
+                        <div class="form-group">
+                            <label for="nekoApikey">Clé API Torznab</label>
+                            <input type="text" id="nekoApikey" placeholder="Clé API" onclick="event.stopPropagation()">
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -881,6 +915,12 @@
                     débridées restent toujours en premier). L'ordre par Tracker utilisera le drag & drop
                     ci-dessous.</span>
             </div>
+
+            <div class="form-group" style="display:flex; align-items:center; gap:8px; padding-top: 15px;">
+                <input type="checkbox" id="excludeSeasonPacks" style="width:auto; margin:0;">
+                <label for="excludeSeasonPacks" style="margin:0;">Exclure les packs de saison complets</label>
+            </div>
+            <span class="help-text" style="margin-top:-5px;">Masque les torrents "Saison Complète" ou "Intégrale" pour n'afficher que les épisodes à l'unité. Utile si vous avez une connexion/stockage limité.</span>
         </div>
 
         <!-- Ordre de priorité -->
@@ -941,6 +981,8 @@
                 <li class="sortable-item" data-id="abn"><span class="drag-handle">≡</span> 🎬 ABN</li>
                 <li class="sortable-item" data-id="c411"><span class="drag-handle">≡</span> 📡 C411</li>
                 <li class="sortable-item" data-id="tr4ker"><span class="drag-handle">≡</span> 🎯 Tr4ker</li>
+                <li class="sortable-item" data-id="nyaa"><span class="drag-handle">≡</span> 🐱 Nyaa</li>
+                <li class="sortable-item" data-id="nekobt"><span class="drag-handle">≡</span> 🐾 NekoBT</li>
             </ul>
         </div>
 
@@ -1010,7 +1052,8 @@
                 'providerAbn': ['abnUsername'],
                 'providerC411': ['c411Apikey'],
                 'providerTorr9': ['torr9Passkey'],
-                'providerTr4ker': ['tr4kerApikey']
+                'providerTr4ker': ['tr4kerApikey'],
+                'providerNeko': ['nekoApikey']
             };
             for (const [cardId, inputIds] of Object.entries(providerMap)) {
                 if (cardId === 'providerYgg') continue; // Always active
@@ -1025,11 +1068,20 @@
                     card.classList.remove('active');
                 }
             }
+
+            const nyaaCard = document.getElementById('providerNyaa');
+            const nyaaCheck = document.getElementById('nyaaEnabled');
+            if(nyaaCheck && nyaaCheck.checked) nyaaCard.classList.add('active');
+            else if(nyaaCard) nyaaCard.classList.remove('active');
         }
 
         // Listen for input changes on provider fields
         document.querySelectorAll('.provider-body input').forEach(input => {
-            input.addEventListener('input', updateProviderActiveStates);
+            if (input.type === 'checkbox') {
+                input.addEventListener('change', updateProviderActiveStates);
+            } else {
+                input.addEventListener('input', updateProviderActiveStates);
+            }
         });
 
         // Gestion des radio buttons pour le service de débridage
@@ -1091,11 +1143,13 @@
             document.getElementById('c411Apikey').value = prefillConfig.c411_apikey || '';
             document.getElementById('torr9Passkey').value = prefillConfig.torr9_passkey || '';
             document.getElementById('tr4kerApikey').value = prefillConfig.tr4ker_apikey || '';
+            document.getElementById('nekoApikey').value = prefillConfig.neko_apikey || '';
+            document.getElementById('nyaaEnabled').checked = !!prefillConfig.nyaa_enabled;
 
             // Mettre à jour les états actifs des provider cards
             updateProviderActiveStates();
             // Ouvrir automatiquement les cards remplies
-            ['providerYgg', 'providerAbn', 'providerC411', 'providerTorr9', 'providerTr4ker'].forEach(id => {
+            ['providerYgg', 'providerAbn', 'providerC411', 'providerTorr9', 'providerTr4ker', 'providerNeko', 'providerNyaa'].forEach(id => {
                 const card = document.getElementById(id);
                 if (card && card.classList.contains('active') && id !== 'providerYgg') {
                     card.classList.add('expanded');
@@ -1228,6 +1282,9 @@
             const c411Apikey = document.getElementById('c411Apikey').value.trim();
             const torr9Passkey = document.getElementById('torr9Passkey').value.trim();
             const tr4kerApikey = document.getElementById('tr4kerApikey').value.trim();
+            const nekoApikey = document.getElementById('nekoApikey').value.trim();
+            const nyaaEnabled = document.getElementById('nyaaEnabled').checked;
+            const excludeSeasonPacks = document.getElementById('excludeSeasonPacks').checked;
             const maxSize = parseInt(document.getElementById('maxSize').value) || 0;
             const sortBy = document.getElementById('sortBy').value;
 
@@ -1281,8 +1338,11 @@
                 c411_apikey: c411Apikey,
                 torr9_passkey: torr9Passkey,
                 tr4ker_apikey: tr4kerApikey,
+                neko_apikey: nekoApikey,
+                nyaa_enabled: nyaaEnabled,
                 max_size: maxSize,
                 sort_by: sortBy,
+                exclude_season_packs: excludeSeasonPacks,
                 providers_order: providersOrder,
                 mediaflow: mediaflowProxyUrl ? {
                     proxy_url: mediaflowProxyUrl,

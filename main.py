@@ -40,6 +40,8 @@ from services.c411 import C411Service
 from services.torr9 import Torr9Service
 from services.qbittorrent import QBittorrentService
 from services.tr4ker import Tr4kerService
+from services.nyaa import NyaaService
+from services.nekobt import NekoBTService
 from utils import format_size, parse_torrent_name, check_season_episode, check_title_match, is_video_file
 
 # Configuration du logging
@@ -407,9 +409,23 @@ async def handle_stream(request):
     target_title = (media_info.get('title') or media_info.get('name')) if media_info else ""
     original_title = (media_info.get('original_title') or media_info.get('original_name')) if media_info else ""
     year = ""
+    is_anime = False
     if media_info:
         date = media_info.get('release_date') or media_info.get('first_air_date')
         year = date.split('-')[0] if date else ""
+        
+        orig_lang = media_info.get('original_language', '')
+        origin_country = media_info.get('origin_country', [])
+        genres = media_info.get('genres', [])
+        genre_ids = [g.get('id') for g in genres] if genres else media_info.get('genre_ids', [])
+        
+        if orig_lang in ['ja', 'ko', 'zh'] or 'JP' in origin_country:
+            if 16 in genre_ids or orig_lang == 'ja':
+                is_anime = True
+                
+        # Fallback pour les animes très spécifiques qui pourraient manquer d'infos complètes
+        if 'anime' in (media_info.get('overview') or '').lower() and 16 in genre_ids:
+            is_anime = True
 
     if stream_type == 'movie':
         tasks.append(ygg_service.search_movie(target_title, year, original_title=original_title, imdb_id=imdb_id, tmdb_id=tmdb_id))
@@ -479,6 +495,36 @@ async def handle_stream(request):
         async def empty(): return []
         tasks.append(empty())
 
+    # Tâche NekoBT
+    if config.get('neko_apikey') and is_anime:
+        logging.info("Starting NekoBT search")
+        nekobt_service = NekoBTService(config.get('neko_apikey'))
+
+        if stream_type == 'movie':
+            tasks.append(nekobt_service.search_movie(target_title, year, imdb_id=imdb_id, tmdb_id=tmdb_id))
+        elif stream_type == 'series':
+            tasks.append(nekobt_service.search_series(target_title, season, episode, imdb_id=imdb_id, tmdb_id=tmdb_id))
+    else:
+        if config.get('neko_apikey') and not is_anime:
+            logging.info("NekoBT search skipped (Not an anime)")
+        async def empty(): return []
+        tasks.append(empty())
+
+    # Tâche Nyaa
+    if config.get('nyaa_enabled') and is_anime:
+        logging.info("Starting Nyaa search")
+        nyaa_service = NyaaService()
+
+        if stream_type == 'movie':
+            tasks.append(nyaa_service.search_movie(target_title, year, imdb_id=imdb_id, tmdb_id=tmdb_id))
+        elif stream_type == 'series':
+            tasks.append(nyaa_service.search_series(target_title, season, episode, imdb_id=imdb_id, tmdb_id=tmdb_id))
+    else:
+        if config.get('nyaa_enabled') and not is_anime:
+            logging.info("Nyaa search skipped (Not an anime)")
+        async def empty(): return []
+        tasks.append(empty())
+
     # Exécution
     try:
         results_list = await asyncio.gather(*tasks, return_exceptions=True)
@@ -498,15 +544,28 @@ async def handle_stream(request):
         c411_results = safe(3)
         torr9_results = safe(4)
         tr4ker_results = safe(5)
+        nekobt_results = safe(6)
+        nyaa_results = safe(7)
     finally:
         # Fermer la session ABN proprement
         if abn_service:
             await abn_service.close()
 
-    logging.info(f"Results breakdown: UNIT3D={len(unit3d_results)}, YGG={len(ygg_results)}, ABN={len(abn_results)}, C411={len(c411_results)}, Torr9={len(torr9_results)}, Tr4ker={len(tr4ker_results)}")
+    logging.info(f"Results breakdown: UNIT3D={len(unit3d_results)}, YGG={len(ygg_results)}, ABN={len(abn_results)}, C411={len(c411_results)}, Torr9={len(torr9_results)}, Tr4ker={len(tr4ker_results)}, NekoBT={len(nekobt_results)}, Nyaa={len(nyaa_results)}")
 
     # Fusion et Déduplication
-    all_torrents = unit3d_results + ygg_results + abn_results + c411_results + torr9_results + tr4ker_results
+    all_torrents = unit3d_results + ygg_results + abn_results + c411_results + torr9_results + tr4ker_results + nekobt_results + nyaa_results
+    
+    # Tri préalable selon providers_order pour que le tracker favori soit gardé lors de la déduplication
+    providers_order = config.get('providers_order', [])
+    if providers_order:
+        def get_prov_sort_key(t):
+            source = t.get('source', '')
+            try:
+                return providers_order.index(source)
+            except ValueError:
+                return len(providers_order)
+        all_torrents.sort(key=get_prov_sort_key)
     
     # Filtrage par taille si configuré
     max_size_gb = config.get('max_size', 0)
@@ -558,15 +617,18 @@ async def handle_stream(request):
 
         # Filtrage par titre et année (Vérification systématique pour éviter les erreurs de mapping des trackers)
         if stream_type in ('movie', 'series'):
-            if not check_title_match(t.get('name', ''), target_title, original_title, year=year, is_movie=(stream_type == 'movie')):
-                # logging.info(f"Filtered out (Title mismatch): {t.get('name')} for target {target_title}")
-                continue
+            # Pour l'animation (Nyaa/NekoBT), le nommage est trop complexe (ex: sous-titres anglais) pour le filtre strict
+            if t.get('source') not in ('nyaa', 'nekobt'):
+                if not check_title_match(t.get('name', ''), target_title, original_title, year=year, is_movie=(stream_type == 'movie')):
+                    # logging.info(f"Filtered out (Title mismatch): {t.get('name')} for target {target_title}")
+                    continue
 
         # Filtrage Série (SxxExx)
         # Si c'est une série, on vérifie que le titre correspond à la saison/épisode demandé
         # pour éviter d'afficher E03 quand on veut E07 (souvent le cas avec recherche floue)
         if stream_type == 'series' and season is not None:
-            if not check_season_episode(t.get('name', ''), season, episode):
+            exclude_packs = config.get('exclude_season_packs', False)
+            if not check_season_episode(t.get('name', ''), season, episode, exclude_packs=exclude_packs):
                 # logging.info(f"Filtered out: {t.get('name')} (Wrong Season/Episode)")
                 continue
 
@@ -586,7 +648,7 @@ async def handle_stream(request):
     if not torrents:
         return web.json_response({"streams": []})
 
-    logging.info(f"Total unique torrents (UNIT3D + YGG + ABN + C411 + Torr9 + Tr4ker): {len(torrents)}")
+    logging.info(f"Total unique torrents (UNIT3D + YGG + ABN + C411 + Torr9 + Tr4ker + NekoBT + Nyaa): {len(torrents)}")
 
     streams = []
     host_url = f"{request.scheme}://{request.host}"
