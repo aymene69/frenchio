@@ -44,7 +44,7 @@ from services.stremthru import StremThruService, STREMTHRU_STORES
 from services.tr4ker import Tr4kerService
 from services.nyaa import NyaaService
 from services.nekobt import NekoBTService
-from utils import format_size, parse_torrent_name, check_season_episode, check_title_match, is_video_file
+from utils import format_size, parse_torrent_name, check_season_episode, check_absolute_episode, check_title_match, is_video_file
 
 # Configuration du logging
 logging.basicConfig(
@@ -64,7 +64,7 @@ if HTTP_PROXY or HTTPS_PROXY:
         logging.info(f"  HTTPS_PROXY: {HTTPS_PROXY}")
 
 # Version de l'application
-APP_VERSION = "1.7.0"
+APP_VERSION = "1.8.0"
 
 # Stremio Addons Config (signature)
 STREMIO_ADDONS_CONFIG = {
@@ -490,6 +490,19 @@ async def handle_stream(request):
         if 'anime' in (media_info.get('overview') or '').lower() and 16 in genre_ids:
             is_anime = True
 
+    # Numérotation absolue des épisodes (nommage fansub anime : "One Piece S01E1122")
+    # Calculée depuis le découpage des saisons TMDB déjà présent dans media_info
+    absolute_episode = None
+    if is_anime and stream_type == 'series' and season and episode and media_info:
+        if season == 1:
+            absolute_episode = episode
+        else:
+            prev_seasons = [s for s in media_info.get('seasons', [])
+                            if s.get('season_number') and 0 < s['season_number'] < season]
+            if len(prev_seasons) == season - 1 and all(s.get('episode_count') for s in prev_seasons):
+                absolute_episode = sum(s['episode_count'] for s in prev_seasons) + episode
+                logging.info(f"Anime: épisode absolu calculé S{season:02d}E{episode:02d} -> {absolute_episode}")
+
     if stream_type == 'movie':
         tasks.append(ygg_service.search_movie(target_title, year, original_title=original_title, imdb_id=imdb_id, tmdb_id=tmdb_id))
     elif stream_type == 'series':
@@ -566,7 +579,7 @@ async def handle_stream(request):
         if stream_type == 'movie':
             tasks.append(nekobt_service.search_movie(target_title, year, imdb_id=imdb_id, tmdb_id=tmdb_id))
         elif stream_type == 'series':
-            tasks.append(nekobt_service.search_series(target_title, season, episode, imdb_id=imdb_id, tmdb_id=tmdb_id))
+            tasks.append(nekobt_service.search_series(target_title, season, episode, imdb_id=imdb_id, tmdb_id=tmdb_id, absolute_episode=absolute_episode))
     else:
         if config.get('neko_apikey') and not is_anime:
             logging.info("NekoBT search skipped (Not an anime)")
@@ -581,7 +594,7 @@ async def handle_stream(request):
         if stream_type == 'movie':
             tasks.append(nyaa_service.search_movie(target_title, year, imdb_id=imdb_id, tmdb_id=tmdb_id))
         elif stream_type == 'series':
-            tasks.append(nyaa_service.search_series(target_title, season, episode, imdb_id=imdb_id, tmdb_id=tmdb_id))
+            tasks.append(nyaa_service.search_series(target_title, season, episode, imdb_id=imdb_id, tmdb_id=tmdb_id, absolute_episode=absolute_episode))
     else:
         if config.get('nyaa_enabled') and not is_anime:
             logging.info("Nyaa search skipped (Not an anime)")
@@ -692,8 +705,10 @@ async def handle_stream(request):
         if stream_type == 'series' and season is not None:
             exclude_packs = config.get('exclude_season_packs', False)
             if not check_season_episode(t.get('name', ''), season, episode, exclude_packs=exclude_packs):
-                # logging.info(f"Filtered out: {t.get('name')} (Wrong Season/Episode)")
-                continue
+                # Nommage anime en numérotation absolue (Nyaa/NekoBT uniquement)
+                if not (t.get('source') in ('nyaa', 'nekobt') and check_absolute_episode(t.get('name', ''), absolute_episode, exclude_packs=exclude_packs)):
+                    # logging.info(f"Filtered out: {t.get('name')} (Wrong Season/Episode)")
+                    continue
 
         # Info Hash est la clé unique (minuscule pour éviter les doublons de casse)
         ih = t.get('info_hash')

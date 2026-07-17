@@ -99,7 +99,7 @@ class NyaaService:
         params = {"q": f"{title} {year}"}
         return await self.search(params)
 
-    async def search_series(self, title, season, episode, imdb_id=None, tmdb_id=None):
+    async def search_series(self, title, season, episode, imdb_id=None, tmdb_id=None, absolute_episode=None):
         queries = [title]
         if season is not None and episode is not None:
             queries.append(f"{title} S{season:02d}E{episode:02d}")
@@ -107,6 +107,10 @@ class NyaaService:
             queries.append(f"{title} S{season:02d}")
             queries.append(f"{title} Saison {season}")
             queries.append(f"{title} Integrale")
+        # Numérotation absolue anime (ex: "One Piece 1122", "One Piece S01E1122")
+        if absolute_episode is not None and absolute_episode != episode:
+            queries.append(f"{title} {absolute_episode:02d}")
+            queries.append(f"{title} S01E{absolute_episode:02d}")
             
         all_results = []
         seen_hashes = set()
