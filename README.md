@@ -15,6 +15,8 @@ Suite à la fermeture de YGG aux services de debrid, cet addon permet de continu
 - 🔍 **Recherche multi-trackers** : UNIT3D, YGGTorrent, ABNormal, C411, Torr9, Tr4ker
 - ⚡ **Débridage multi-services** : AllDebrid, TorBox, Debrid-Link - Streaming instantané des torrents cachés
 - proxy **MediaFlow** optionnel : transite le lien final de lecture via votre instance MediaFlow
+- proxy **StremThru** optionnel : transite les appels à l'API du débrideur via votre instance StremThru (contourne les blocages d'IP datacenter, ex. AllDebrid sur VPS)
+- **multi-débrideurs** : configurez plusieurs services à la fois, les liens de chacun sont proposés dans Stremio
 - 📥 **qBittorrent Support** : Streaming direct pour les torrents non-cachés
 - 🎯 **Sélection intelligente** : Détection automatique des épisodes dans les packs de saisons
 - 🌐 **Recherche parallèle** : Requêtes simultanées pour des résultats ultra-rapides
@@ -94,11 +96,31 @@ Ouvrez votre navigateur sur : `http://localhost:7777/configure`
 - **TMDB API Key** : Votre clé API v3 de TheMovieDB
 
 #### Services de débridage (Optionnel - Recommandé)
+Vous pouvez cocher **plusieurs débrideurs simultanément** : le cache est vérifié sur chacun
+en parallèle et les liens de tous les services où le torrent est disponible sont proposés
+dans Stremio, tagués `[AD+]`, `[TB+]`, `[DL+]`, `[RD+]` (convention Torrentio, le `+`
+indiquant un lien en cache — reconnu par AIOStreams pour `service.id` / `service.cached`).
+
 - **AllDebrid API Key** : Votre clé API pour le débridage instantané - [Obtenir](https://alldebrid.com/apikeys/)
 - **TorBox API Key** : Alternative à AllDebrid - [Obtenir](https://torbox.app/settings)
 - **Debrid-Link API Key** : Alternative à AllDebrid - [Obtenir](https://debrid-link.com/webapp/apikey)
 - **MediaFlow Proxy URL** : Optionnel. Exemple : `https://mediaflow.mondomaine.com`
 - **MediaFlow API Password** : Optionnel si votre instance MediaFlow est protégée
+
+#### Proxy StremThru (Optionnel)
+Proxy les appels à l'**API du débrideur** via une instance [StremThru](https://github.com/MunifTanjim/stremthru).
+Utile quand l'IP du serveur hébergeant Frenchio est bloquée par le débrideur (ex : AllDebrid refuse
+les IP de datacenter/VPS avec l'erreur *"Dedicated servers are not allowed"*) : c'est alors StremThru
+(hébergé par exemple sur une IP résidentielle) qui parle au débrideur.
+
+- **URL StremThru** : Exemple : `https://stremthru.mondomaine.com`
+- **Identifiants StremThru** : Optionnel, au format `utilisateur:motdepasse`, si votre instance est
+  protégée par la variable `STREMTHRU_AUTH`
+
+Fonctionne avec les quatre débrideurs (AllDebrid, TorBox, Debrid-Link, Real-Debrid) : la vérification
+du cache et le débridage passent par l'API *store* unifiée de StremThru (`/v0/store`). Sans URL
+StremThru configurée, Frenchio appelle l'API du débrideur directement comme avant. À ne pas confondre
+avec MediaFlow : StremThru proxifie les appels d'API, MediaFlow proxifie le flux vidéo final.
 
 #### Trackers UNIT3D (Optionnel)
 Ajoutez un ou plusieurs trackers compatibles UNIT3D :

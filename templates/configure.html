@@ -513,26 +513,26 @@
             </div>
 
             <div class="form-group">
-                <label>Service de débridage <span class="badge">Optionnel</span></label>
+                <label>Services de débridage <span class="badge">Optionnel</span></label>
+                <span class="help-text" style="display: block; margin-bottom: 10px;">
+                    Cochez un ou plusieurs services : les liens de chaque débrideur coché seront
+                    proposés dans Stremio. Aucun coché = qBittorrent seulement.
+                </span>
                 <div style="margin-bottom: 15px;">
-                    <label id="debridNoneLabel" class="option-tile">
-                        <input type="radio" name="debridService" value="none" id="debridNone" checked>
-                        <span>Aucun (qBittorrent seulement)</span>
-                    </label>
                     <label class="option-tile">
-                        <input type="radio" name="debridService" value="alldebrid" id="debridAlldebrid">
+                        <input type="checkbox" name="debridServices" value="alldebrid" id="debridAlldebrid">
                         <span>AllDebrid</span>
                     </label>
                     <label class="option-tile">
-                        <input type="radio" name="debridService" value="torbox" id="debridTorbox">
+                        <input type="checkbox" name="debridServices" value="torbox" id="debridTorbox">
                         <span>TorBox</span>
                     </label>
                     <label class="option-tile">
-                        <input type="radio" name="debridService" value="debridlink" id="debridDebridlink">
+                        <input type="checkbox" name="debridServices" value="debridlink" id="debridDebridlink">
                         <span>Debrid-Link</span>
                     </label>
                     <label class="option-tile">
-                        <input type="radio" name="debridService" value="realdebrid" id="debridRealdebrid">
+                        <input type="checkbox" name="debridServices" value="realdebrid" id="debridRealdebrid">
                         <span>Real-Debrid</span>
                     </label>
                 </div>
@@ -564,6 +564,28 @@
                 <input type="text" id="realdebridKey" placeholder="Ex: abc123...">
                 <span class="help-text">Alternative à AllDebrid. <a href="https://real-debrid.com/apitoken"
                         target="_blank">Obtenir ma clé</a></span>
+            </div>
+
+            <div id="stremthruGroup" style="display: none;">
+                <div class="form-group" style="margin-top: 20px;">
+                    <label for="stremthruUrl">URL StremThru <span class="badge">Optionnel</span></label>
+                    <input type="url" id="stremthruUrl" placeholder="https://stremthru.mondomaine.com">
+                    <span class="help-text">Proxy les appels à l'API du débrideur via
+                        <a href="https://github.com/MunifTanjim/stremthru" target="_blank">StremThru</a>.
+                        Utile si l'IP du serveur Frenchio est bloquée par le débrideur
+                        (ex: AllDebrid qui refuse les IP de datacenter/VPS).</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="stremthruAuth">Identifiants StremThru (user:pass)</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="stremthruAuth" placeholder="Laisser vide si instance non protégée">
+                        <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('stremthruAuth', this)" title="Afficher/Masquer">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
+                    <span class="help-text">Optionnel. Requis si votre instance StremThru est protégée (variable <code>STREMTHRU_AUTH</code>), au format <code>utilisateur:motdepasse</code>.</span>
+                </div>
             </div>
 
             <div class="form-group" style="margin-top: 20px;">
@@ -833,6 +855,40 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Nyaa -->
+                <div class="provider-card" id="providerNyaa" onclick="toggleProvider('providerNyaa')">
+                    <div class="provider-header">
+                        <span class="provider-name">
+                            <span class="provider-dot"></span>
+                            Nyaa
+                        </span>
+                        <span class="provider-chevron">▼</span>
+                    </div>
+                    <div class="provider-body">
+                        <div class="form-group" style="display:flex; align-items:center; gap:8px; padding-top: 5px;">
+                            <input type="checkbox" id="nyaaEnabled" style="width:auto; margin:0;" onclick="event.stopPropagation()">
+                            <label for="nyaaEnabled" style="margin:0;">Activer Nyaa</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NekoBT -->
+                <div class="provider-card" id="providerNeko" onclick="toggleProvider('providerNeko')">
+                    <div class="provider-header">
+                        <span class="provider-name">
+                            <span class="provider-dot"></span>
+                            NekoBT
+                        </span>
+                        <span class="provider-chevron">▼</span>
+                    </div>
+                    <div class="provider-body">
+                        <div class="form-group">
+                            <label for="nekoApikey">Clé API Torznab</label>
+                            <input type="text" id="nekoApikey" placeholder="Clé API" onclick="event.stopPropagation()">
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -881,6 +937,12 @@
                     débridées restent toujours en premier). L'ordre par Tracker utilisera le drag & drop
                     ci-dessous.</span>
             </div>
+
+            <div class="form-group" style="display:flex; align-items:center; gap:8px; padding-top: 15px;">
+                <input type="checkbox" id="excludeSeasonPacks" style="width:auto; margin:0;">
+                <label for="excludeSeasonPacks" style="margin:0;">Exclure les packs de saison complets</label>
+            </div>
+            <span class="help-text" style="margin-top:-5px;">Masque les torrents "Saison Complète" ou "Intégrale" pour n'afficher que les épisodes à l'unité. Utile si vous avez une connexion/stockage limité.</span>
         </div>
 
         <!-- Ordre de priorité -->
@@ -941,6 +1003,8 @@
                 <li class="sortable-item" data-id="abn"><span class="drag-handle">≡</span> 🎬 ABN</li>
                 <li class="sortable-item" data-id="c411"><span class="drag-handle">≡</span> 📡 C411</li>
                 <li class="sortable-item" data-id="tr4ker"><span class="drag-handle">≡</span> 🎯 Tr4ker</li>
+                <li class="sortable-item" data-id="nyaa"><span class="drag-handle">≡</span> 🐱 Nyaa</li>
+                <li class="sortable-item" data-id="nekobt"><span class="drag-handle">≡</span> 🐾 NekoBT</li>
             </ul>
         </div>
 
@@ -1010,7 +1074,8 @@
                 'providerAbn': ['abnUsername'],
                 'providerC411': ['c411Apikey'],
                 'providerTorr9': ['torr9Passkey'],
-                'providerTr4ker': ['tr4kerApikey']
+                'providerTr4ker': ['tr4kerApikey'],
+                'providerNeko': ['nekoApikey']
             };
             for (const [cardId, inputIds] of Object.entries(providerMap)) {
                 if (cardId === 'providerYgg') continue; // Always active
@@ -1025,53 +1090,65 @@
                     card.classList.remove('active');
                 }
             }
+
+            const nyaaCard = document.getElementById('providerNyaa');
+            const nyaaCheck = document.getElementById('nyaaEnabled');
+            if(nyaaCheck && nyaaCheck.checked) nyaaCard.classList.add('active');
+            else if(nyaaCard) nyaaCard.classList.remove('active');
         }
 
         // Listen for input changes on provider fields
         document.querySelectorAll('.provider-body input').forEach(input => {
-            input.addEventListener('input', updateProviderActiveStates);
+            if (input.type === 'checkbox') {
+                input.addEventListener('change', updateProviderActiveStates);
+            } else {
+                input.addEventListener('input', updateProviderActiveStates);
+            }
         });
 
-        // Gestion des radio buttons pour le service de débridage
-        function updateDebridFields() {
-            const selectedService = document.querySelector('input[name="debridService"]:checked').value;
+        // Gestion des checkboxes des services de débridage (multi-sélection possible)
+        const DEBRID_SERVICES = [
+            { id: 'debridAlldebrid', group: 'alldebridKeyGroup', key: 'alldebridKey', configKey: 'alldebrid_key', label: 'AllDebrid' },
+            { id: 'debridTorbox', group: 'torboxKeyGroup', key: 'torboxKey', configKey: 'torbox_key', label: 'TorBox' },
+            { id: 'debridDebridlink', group: 'debridlinkKeyGroup', key: 'debridlinkKey', configKey: 'debridlink_key', label: 'Debrid-Link' },
+            { id: 'debridRealdebrid', group: 'realdebridKeyGroup', key: 'realdebridKey', configKey: 'realdebrid_key', label: 'Real-Debrid' }
+        ];
 
-            document.getElementById('alldebridKeyGroup').style.display =
-                selectedService === 'alldebrid' ? 'block' : 'none';
-            document.getElementById('torboxKeyGroup').style.display =
-                selectedService === 'torbox' ? 'block' : 'none';
-            document.getElementById('debridlinkKeyGroup').style.display =
-                selectedService === 'debridlink' ? 'block' : 'none';
-            document.getElementById('realdebridKeyGroup').style.display =
-                selectedService === 'realdebrid' ? 'block' : 'none';
+        function updateDebridFields() {
+            let anyChecked = false;
+            DEBRID_SERVICES.forEach(s => {
+                const checked = document.getElementById(s.id).checked;
+                document.getElementById(s.group).style.display = checked ? 'block' : 'none';
+                if (checked) anyChecked = true;
+            });
+
+            // StremThru n'a de sens qu'avec au moins un service de débridage
+            document.getElementById('stremthruGroup').style.display = anyChecked ? 'block' : 'none';
         }
 
-        document.querySelectorAll('input[name="debridService"]').forEach(radio => {
-            radio.addEventListener('change', updateDebridFields);
+        document.querySelectorAll('input[name="debridServices"]').forEach(cb => {
+            cb.addEventListener('change', updateDebridFields);
         });
 
         // Chargement initial
         if (prefillConfig && Object.keys(prefillConfig).length > 0) {
             document.getElementById('tmdbKey').value = prefillConfig.tmdb_key || '';
 
-            // Détecter quel service est configuré
-            if (prefillConfig.alldebrid_key && prefillConfig.alldebrid_key.trim()) {
-                document.getElementById('debridAlldebrid').checked = true;
-                document.getElementById('alldebridKey').value = prefillConfig.alldebrid_key;
-            } else if (prefillConfig.torbox_key && prefillConfig.torbox_key.trim()) {
-                document.getElementById('debridTorbox').checked = true;
-                document.getElementById('torboxKey').value = prefillConfig.torbox_key;
-            } else if (prefillConfig.debridlink_key && prefillConfig.debridlink_key.trim()) {
-                document.getElementById('debridDebridlink').checked = true;
-                document.getElementById('debridlinkKey').value = prefillConfig.debridlink_key;
-            } else if (prefillConfig.realdebrid_key && prefillConfig.realdebrid_key.trim()) {
-                document.getElementById('debridRealdebrid').checked = true;
-                document.getElementById('realdebridKey').value = prefillConfig.realdebrid_key;
-            } else {
-                document.getElementById('debridNone').checked = true;
-            }
+            // Détecter les services configurés (multi-sélection possible)
+            DEBRID_SERVICES.forEach(s => {
+                const value = prefillConfig[s.configKey];
+                if (value && value.trim()) {
+                    document.getElementById(s.id).checked = true;
+                    document.getElementById(s.key).value = value;
+                }
+            });
 
             updateDebridFields();
+
+            if (prefillConfig.stremthru) {
+                document.getElementById('stremthruUrl').value = prefillConfig.stremthru.url || '';
+                document.getElementById('stremthruAuth').value = prefillConfig.stremthru.auth || '';
+            }
 
             if (prefillConfig.mediaflow) {
                 document.getElementById('mediaflowProxyUrl').value = prefillConfig.mediaflow.proxy_url || '';
@@ -1091,11 +1168,13 @@
             document.getElementById('c411Apikey').value = prefillConfig.c411_apikey || '';
             document.getElementById('torr9Passkey').value = prefillConfig.torr9_passkey || '';
             document.getElementById('tr4kerApikey').value = prefillConfig.tr4ker_apikey || '';
+            document.getElementById('nekoApikey').value = prefillConfig.neko_apikey || '';
+            document.getElementById('nyaaEnabled').checked = !!prefillConfig.nyaa_enabled;
 
             // Mettre à jour les états actifs des provider cards
             updateProviderActiveStates();
             // Ouvrir automatiquement les cards remplies
-            ['providerYgg', 'providerAbn', 'providerC411', 'providerTorr9', 'providerTr4ker'].forEach(id => {
+            ['providerYgg', 'providerAbn', 'providerC411', 'providerTorr9', 'providerTr4ker', 'providerNeko', 'providerNyaa'].forEach(id => {
                 const card = document.getElementById(id);
                 if (card && card.classList.contains('active') && id !== 'providerYgg') {
                     card.classList.add('expanded');
@@ -1137,19 +1216,7 @@
             if (qbitSection) {
                 qbitSection.style.display = 'none';
             }
-
-            // Masquer l'option "Aucun (qBittorrent seulement)"
-            const debridNoneLabel = document.getElementById('debridNoneLabel');
-            if (debridNoneLabel) {
-                debridNoneLabel.style.display = 'none';
-            }
-
-            // Si "Aucun" était sélectionné, sélectionner AllDebrid par défaut
-            const debridNone = document.getElementById('debridNone');
-            if (debridNone && debridNone.checked) {
-                document.getElementById('debridAlldebrid').checked = true;
-                updateDebridFields();
-            }
+            // Sans qBittorrent, au moins un débrideur est exigé à la génération du lien
         }
 
         // Afficher le blurb personnalisé si configuré
@@ -1180,38 +1247,23 @@
         function generateLink() {
             const tmdbKey = document.getElementById('tmdbKey').value.trim();
 
-            // Vérifier quel service de débridage est sélectionné
-            const selectedDebrid = document.querySelector('input[name="debridService"]:checked').value;
-            let alldebridKey = '';
-            let torboxKey = '';
-            let debridlinkKey = '';
-            let realdebridKey = '';
+            // Récupérer les services de débridage cochés (multi-sélection possible)
+            const checkedServices = DEBRID_SERVICES.filter(s => document.getElementById(s.id).checked);
+            const debridKeys = {};
 
-            if (selectedDebrid === 'alldebrid') {
-                alldebridKey = document.getElementById('alldebridKey').value.trim();
-                if (!alldebridKey) {
-                    alert("Erreur : Veuillez entrer votre clé API AllDebrid.");
+            for (const s of checkedServices) {
+                const value = document.getElementById(s.key).value.trim();
+                if (!value) {
+                    alert(`Erreur : Veuillez entrer votre clé API ${s.label}.`);
                     return;
                 }
-            } else if (selectedDebrid === 'torbox') {
-                torboxKey = document.getElementById('torboxKey').value.trim();
-                if (!torboxKey) {
-                    alert("Erreur : Veuillez entrer votre clé API TorBox.");
-                    return;
-                }
-            } else if (selectedDebrid === 'debridlink') {
-                debridlinkKey = document.getElementById('debridlinkKey').value.trim();
-                if (!debridlinkKey) {
-                    alert("Erreur : Veuillez entrer votre clé API Debrid-Link.");
-                    return;
-                }
-            } else if (selectedDebrid === 'realdebrid') {
-                realdebridKey = document.getElementById('realdebridKey').value.trim();
-                if (!realdebridKey) {
-                    alert("Erreur : Veuillez entrer votre clé API Real-Debrid.");
-                    return;
-                }
+                debridKeys[s.configKey] = value;
             }
+
+            const alldebridKey = debridKeys.alldebrid_key || '';
+            const torboxKey = debridKeys.torbox_key || '';
+            const debridlinkKey = debridKeys.debridlink_key || '';
+            const realdebridKey = debridKeys.realdebrid_key || '';
 
             // qBit Config
             const qbitUrl = document.getElementById('qbitUrl').value.trim();
@@ -1220,6 +1272,8 @@
             const qbitPublicUrl = document.getElementById('qbitPublicUrl').value.trim();
             const mediaflowProxyUrl = document.getElementById('mediaflowProxyUrl').value.trim().replace(/\/$/, '');
             const mediaflowApiPassword = document.getElementById('mediaflowApiPassword').value.trim();
+            const stremthruUrl = document.getElementById('stremthruUrl').value.trim().replace(/\/$/, '');
+            const stremthruAuth = document.getElementById('stremthruAuth').value.trim();
 
             const hasQbit = qbitUrl && qbitPublicUrl;
 
@@ -1228,6 +1282,9 @@
             const c411Apikey = document.getElementById('c411Apikey').value.trim();
             const torr9Passkey = document.getElementById('torr9Passkey').value.trim();
             const tr4kerApikey = document.getElementById('tr4kerApikey').value.trim();
+            const nekoApikey = document.getElementById('nekoApikey').value.trim();
+            const nyaaEnabled = document.getElementById('nyaaEnabled').checked;
+            const excludeSeasonPacks = document.getElementById('excludeSeasonPacks').checked;
             const maxSize = parseInt(document.getElementById('maxSize').value) || 0;
             const sortBy = document.getElementById('sortBy').value;
 
@@ -1236,7 +1293,7 @@
                 return;
             }
 
-            if (selectedDebrid === 'none' && !hasQbit) {
+            if (checkedServices.length === 0 && !hasQbit) {
                 if (!qbittorrentEnabled) {
                     alert("Erreur : qBittorrent est désactivé sur ce serveur. Vous devez configurer un service de débridage (AllDebrid, TorBox, Debrid-Link ou Real-Debrid).");
                 } else {
@@ -1281,9 +1338,16 @@
                 c411_apikey: c411Apikey,
                 torr9_passkey: torr9Passkey,
                 tr4ker_apikey: tr4kerApikey,
+                neko_apikey: nekoApikey,
+                nyaa_enabled: nyaaEnabled,
                 max_size: maxSize,
                 sort_by: sortBy,
+                exclude_season_packs: excludeSeasonPacks,
                 providers_order: providersOrder,
+                stremthru: (stremthruUrl && checkedServices.length > 0) ? {
+                    url: stremthruUrl,
+                    auth: stremthruAuth
+                } : null,
                 mediaflow: mediaflowProxyUrl ? {
                     proxy_url: mediaflowProxyUrl,
                     api_password: mediaflowApiPassword

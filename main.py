@@ -20,6 +20,7 @@ Repository: https://github.com/aymene69/frenchio
 """
 
 import base64
+import ipaddress
 import json
 import os
 import logging
@@ -39,8 +40,11 @@ from services.abn import ABNService
 from services.c411 import C411Service
 from services.torr9 import Torr9Service
 from services.qbittorrent import QBittorrentService
+from services.stremthru import StremThruService, STREMTHRU_STORES
 from services.tr4ker import Tr4kerService
-from utils import format_size, parse_torrent_name, check_season_episode, check_title_match, is_video_file
+from services.nyaa import NyaaService
+from services.nekobt import NekoBTService
+from utils import format_size, parse_torrent_name, check_season_episode, check_absolute_episode, check_special_episode, check_title_tokens, check_title_match, is_video_file
 
 # Configuration du logging
 logging.basicConfig(
@@ -60,7 +64,7 @@ if HTTP_PROXY or HTTPS_PROXY:
         logging.info(f"  HTTPS_PROXY: {HTTPS_PROXY}")
 
 # Version de l'application
-APP_VERSION = "1.5.2"
+APP_VERSION = "1.8.1"
 
 # Stremio Addons Config (signature)
 STREMIO_ADDONS_CONFIG = {
@@ -162,6 +166,51 @@ def decode_config(config_str):
     except Exception as e:
         logging.error(f"Config Decode Error: {e}")
         return None
+
+
+def get_stremthru_url(config):
+    """Retourne l'URL StremThru configurée (ou '' si absente)."""
+    stremthru_config = config.get('stremthru') or {}
+    return (stremthru_config.get('url') or '').strip().rstrip('/')
+
+
+def get_client_ip(request):
+    """
+    Récupère l'IP publique du client (lecteur Stremio) pour la transmettre
+    à StremThru, qui la forwarde au débrideur (lien généré pour la bonne IP).
+    """
+    forwarded = request.headers.get('X-Forwarded-For', '')
+    ip = forwarded.split(',')[0].strip() if forwarded else request.remote
+
+    try:
+        if ip and ipaddress.ip_address(ip).is_global:
+            return ip
+    except ValueError:
+        pass
+    return None
+
+
+def build_stremthru_service(config, store_name, request=None):
+    """
+    Construit un StremThruService pour le débrideur donné, ou None si
+    StremThru n'est pas configuré ou si la clé du débrideur est absente.
+    """
+    stremthru_url = get_stremthru_url(config)
+    if not stremthru_url or store_name not in STREMTHRU_STORES:
+        return None
+
+    api_key = (config.get(STREMTHRU_STORES[store_name]) or '').strip()
+    if not api_key:
+        return None
+
+    stremthru_config = config.get('stremthru') or {}
+    return StremThruService(
+        stremthru_url,
+        store_name,
+        api_key,
+        auth=(stremthru_config.get('auth') or '').strip() or None,
+        client_ip=get_client_ip(request) if request else None
+    )
 
 
 def build_mediaflow_proxy_url(stream_url, mediaflow_config, filename=None):
@@ -331,6 +380,22 @@ async def handle_stream(request):
     
     if not alldebrid_service and not torbox_service and not debridlink_service and not realdebrid_service:
         logging.info("No debrid service configured, using qBittorrent fallback")
+
+    # Services de débridage actifs : [(nom, service)] — multi-débrideurs supporté,
+    # les liens de chaque service configuré seront proposés dans Stremio.
+    # Si StremThru est configuré, chaque service est remplacé par son proxy StremThru.
+    debrid_backends = []
+    for store_name, native_service in (
+        ("alldebrid", alldebrid_service),
+        ("torbox", torbox_service),
+        ("debridlink", debridlink_service),
+        ("realdebrid", realdebrid_service),
+    ):
+        if native_service:
+            stremthru_service = build_stremthru_service(config, store_name, request)
+            if stremthru_service:
+                logging.info(f"StremThru proxy enabled for {store_name} ({get_stremthru_url(config)})")
+            debrid_backends.append((store_name, stremthru_service or native_service))
     
     # qBittorrent optionnel
     qbit_service = None
@@ -407,9 +472,36 @@ async def handle_stream(request):
     target_title = (media_info.get('title') or media_info.get('name')) if media_info else ""
     original_title = (media_info.get('original_title') or media_info.get('original_name')) if media_info else ""
     year = ""
+    is_anime = False
     if media_info:
         date = media_info.get('release_date') or media_info.get('first_air_date')
         year = date.split('-')[0] if date else ""
+        
+        orig_lang = media_info.get('original_language', '')
+        origin_country = media_info.get('origin_country', [])
+        genres = media_info.get('genres', [])
+        genre_ids = [g.get('id') for g in genres] if genres else media_info.get('genre_ids', [])
+        
+        if orig_lang in ['ja', 'ko', 'zh'] or 'JP' in origin_country:
+            if 16 in genre_ids or orig_lang == 'ja':
+                is_anime = True
+                
+        # Fallback pour les animes très spécifiques qui pourraient manquer d'infos complètes
+        if 'anime' in (media_info.get('overview') or '').lower() and 16 in genre_ids:
+            is_anime = True
+
+    # Numérotation absolue des épisodes (nommage fansub anime : "One Piece S01E1122")
+    # Calculée depuis le découpage des saisons TMDB déjà présent dans media_info
+    absolute_episode = None
+    if is_anime and stream_type == 'series' and season and episode and media_info:
+        if season == 1:
+            absolute_episode = episode
+        else:
+            prev_seasons = [s for s in media_info.get('seasons', [])
+                            if s.get('season_number') and 0 < s['season_number'] < season]
+            if len(prev_seasons) == season - 1 and all(s.get('episode_count') for s in prev_seasons):
+                absolute_episode = sum(s['episode_count'] for s in prev_seasons) + episode
+                logging.info(f"Anime: épisode absolu calculé S{season:02d}E{episode:02d} -> {absolute_episode}")
 
     if stream_type == 'movie':
         tasks.append(ygg_service.search_movie(target_title, year, original_title=original_title, imdb_id=imdb_id, tmdb_id=tmdb_id))
@@ -479,6 +571,36 @@ async def handle_stream(request):
         async def empty(): return []
         tasks.append(empty())
 
+    # Tâche NekoBT
+    if config.get('neko_apikey') and is_anime:
+        logging.info("Starting NekoBT search")
+        nekobt_service = NekoBTService(config.get('neko_apikey'))
+
+        if stream_type == 'movie':
+            tasks.append(nekobt_service.search_movie(target_title, year, imdb_id=imdb_id, tmdb_id=tmdb_id))
+        elif stream_type == 'series':
+            tasks.append(nekobt_service.search_series(target_title, season, episode, imdb_id=imdb_id, tmdb_id=tmdb_id, absolute_episode=absolute_episode))
+    else:
+        if config.get('neko_apikey') and not is_anime:
+            logging.info("NekoBT search skipped (Not an anime)")
+        async def empty(): return []
+        tasks.append(empty())
+
+    # Tâche Nyaa
+    if config.get('nyaa_enabled') and is_anime:
+        logging.info("Starting Nyaa search")
+        nyaa_service = NyaaService()
+
+        if stream_type == 'movie':
+            tasks.append(nyaa_service.search_movie(target_title, year, imdb_id=imdb_id, tmdb_id=tmdb_id))
+        elif stream_type == 'series':
+            tasks.append(nyaa_service.search_series(target_title, season, episode, imdb_id=imdb_id, tmdb_id=tmdb_id, absolute_episode=absolute_episode))
+    else:
+        if config.get('nyaa_enabled') and not is_anime:
+            logging.info("Nyaa search skipped (Not an anime)")
+        async def empty(): return []
+        tasks.append(empty())
+
     # Exécution
     try:
         results_list = await asyncio.gather(*tasks, return_exceptions=True)
@@ -498,15 +620,28 @@ async def handle_stream(request):
         c411_results = safe(3)
         torr9_results = safe(4)
         tr4ker_results = safe(5)
+        nekobt_results = safe(6)
+        nyaa_results = safe(7)
     finally:
         # Fermer la session ABN proprement
         if abn_service:
             await abn_service.close()
 
-    logging.info(f"Results breakdown: UNIT3D={len(unit3d_results)}, YGG={len(ygg_results)}, ABN={len(abn_results)}, C411={len(c411_results)}, Torr9={len(torr9_results)}, Tr4ker={len(tr4ker_results)}")
+    logging.info(f"Results breakdown: UNIT3D={len(unit3d_results)}, YGG={len(ygg_results)}, ABN={len(abn_results)}, C411={len(c411_results)}, Torr9={len(torr9_results)}, Tr4ker={len(tr4ker_results)}, NekoBT={len(nekobt_results)}, Nyaa={len(nyaa_results)}")
 
     # Fusion et Déduplication
-    all_torrents = unit3d_results + ygg_results + abn_results + c411_results + torr9_results + tr4ker_results
+    all_torrents = unit3d_results + ygg_results + abn_results + c411_results + torr9_results + tr4ker_results + nekobt_results + nyaa_results
+    
+    # Tri préalable selon providers_order pour que le tracker favori soit gardé lors de la déduplication
+    providers_order = config.get('providers_order', [])
+    if providers_order:
+        def get_prov_sort_key(t):
+            source = t.get('source', '')
+            try:
+                return providers_order.index(source)
+            except ValueError:
+                return len(providers_order)
+        all_torrents.sort(key=get_prov_sort_key)
     
     # Filtrage par taille si configuré
     max_size_gb = config.get('max_size', 0)
@@ -558,15 +693,32 @@ async def handle_stream(request):
 
         # Filtrage par titre et année (Vérification systématique pour éviter les erreurs de mapping des trackers)
         if stream_type in ('movie', 'series'):
-            if not check_title_match(t.get('name', ''), target_title, original_title, year=year, is_movie=(stream_type == 'movie')):
-                # logging.info(f"Filtered out (Title mismatch): {t.get('name')} for target {target_title}")
-                continue
+            # Pour l'animation (Nyaa/NekoBT), le nommage est trop complexe (ex: sous-titres anglais) pour le filtre strict
+            if t.get('source') not in ('nyaa', 'nekobt'):
+                if not check_title_match(t.get('name', ''), target_title, original_title, year=year, is_movie=(stream_type == 'movie')):
+                    # logging.info(f"Filtered out (Title mismatch): {t.get('name')} for target {target_title}")
+                    continue
 
         # Filtrage Série (SxxExx)
         # Si c'est une série, on vérifie que le titre correspond à la saison/épisode demandé
         # pour éviter d'afficher E03 quand on veut E07 (souvent le cas avec recherche floue)
         if stream_type == 'series' and season is not None:
-            if not check_season_episode(t.get('name', ''), season, episode):
+            exclude_packs = config.get('exclude_season_packs', False)
+            t_name = t.get('name', '')
+            is_anime_source = t.get('source') in ('nyaa', 'nekobt')
+            if season == 0 and is_anime_source:
+                # OVA/Spéciaux : nommage fansub ("Titre OVA 06") plutôt que S00Exx
+                se_ok = check_special_episode(t_name, episode, exclude_packs=exclude_packs)
+            else:
+                se_ok = check_season_episode(t_name, season, episode, exclude_packs=exclude_packs)
+                if not se_ok and is_anime_source:
+                    # Nommage anime en numérotation absolue (Nyaa/NekoBT uniquement)
+                    se_ok = check_absolute_episode(t_name, absolute_episode, exclude_packs=exclude_packs)
+            # Les acceptations "molles" (pack, range, absolu) sans match SxxExx exact
+            # doivent au moins contenir le titre pour écarter les hors-sujet
+            if se_ok and is_anime_source and not check_season_episode(t_name, season, episode, exclude_packs=True):
+                se_ok = check_title_tokens(t_name, target_title, original_title)
+            if not se_ok:
                 # logging.info(f"Filtered out: {t.get('name')} (Wrong Season/Episode)")
                 continue
 
@@ -586,87 +738,76 @@ async def handle_stream(request):
     if not torrents:
         return web.json_response({"streams": []})
 
-    logging.info(f"Total unique torrents (UNIT3D + YGG + ABN + C411 + Torr9 + Tr4ker): {len(torrents)}")
+    logging.info(f"Total unique torrents (UNIT3D + YGG + ABN + C411 + Torr9 + Tr4ker + NekoBT + Nyaa): {len(torrents)}")
 
     streams = []
     host_url = f"{request.scheme}://{request.host}"
     
-    # 3. Check disponibilité sur les services de débridage
-    availability = {}
-    debrid_provider = None
-    
-    if alldebrid_service:
+    # 3. Check disponibilité sur tous les services de débridage configurés (en parallèle)
+    availability_by_provider = {}
+
+    if debrid_backends:
         hashes = [t['info_hash'] for t in torrents if t.get('info_hash')]
-        availability = await alldebrid_service.check_availability(hashes)
-        debrid_provider = "alldebrid"
-        logging.info(f"AllDebrid: {len([v for v in availability.values() if v])} cached torrents")
-    
-    elif torbox_service:
-        # TorBox check (en parallèle pour la vitesse)
-        hashes = [t['info_hash'] for t in torrents if t.get('info_hash')]
-        # Effectuer toutes les vérifications en parallèle
-        results = await asyncio.gather(
-            *[torbox_service.check_availability(h) for h in hashes],
-            return_exceptions=True
+
+        async def check_provider(name, service):
+            try:
+                if name == 'torbox' and not isinstance(service, StremThruService):
+                    # TorBox natif vérifie hash par hash (en parallèle pour la vitesse)
+                    results = await asyncio.gather(
+                        *[service.check_availability(h) for h in hashes],
+                        return_exceptions=True
+                    )
+                    return name, {
+                        h.lower().strip(): bool(r)
+                        for h, r in zip(hashes, results)
+                        if not isinstance(r, Exception)
+                    }
+                return name, await service.check_availability(hashes)
+            except Exception as e:
+                logging.error(f"{name}: availability check failed: {e}")
+                return name, {}
+
+        provider_results = await asyncio.gather(
+            *[check_provider(name, service) for name, service in debrid_backends]
         )
-        # Construire le dictionnaire de disponibilité
-        for h, result in zip(hashes, results):
-            if not isinstance(result, Exception) and result:
-                availability[h] = result
-        debrid_provider = "torbox"
-        logging.info(f"TorBox: {len([v for v in availability.values() if v])} cached torrents")
-    
-    elif debridlink_service:
-        # DebridLink check (en parallèle)
-        hashes = [t['info_hash'] for t in torrents if t.get('info_hash')]
-        availability = await debridlink_service.check_availability(hashes)
-        debrid_provider = "debridlink"
-        logging.info(f"DebridLink: {len([v for v in availability.values() if v])} cached torrents")
-    
-    elif realdebrid_service:
-        # Real-Debrid check
-        hashes = [t['info_hash'] for t in torrents if t.get('info_hash')]
-        availability = await realdebrid_service.check_availability(hashes)
-        debrid_provider = "realdebrid"
-        logging.info(f"Real-Debrid: {len([v for v in availability.values() if v])} cached torrents")
+        for name, avail in provider_results:
+            availability_by_provider[name] = avail
+            logging.info(f"{name}: {len([v for v in avail.values() if v])} cached torrents")
 
     # 4. Générer les streams
+    # cached_torrents : un élément par couple (torrent, débrideur) où il est en cache,
+    # pour proposer les liens de tous les débrideurs configurés (multi-débrideurs)
     cached_torrents = []
     uncached_torrents = []
-    
+
     for torrent in torrents:
         info_hash = torrent.get('info_hash')
         if not info_hash:
             continue
-            
-        # Nettoyer le hash
-        if alldebrid_service:
-            clean_hash = alldebrid_service._clean_hash(info_hash)
-            is_cached = availability.get(clean_hash, False)
-        elif torbox_service:
-            clean_hash = info_hash.lower().strip()
-            is_cached = availability.get(clean_hash, False)
-        elif debridlink_service:
-            clean_hash = info_hash.lower().strip()
-            is_cached = availability.get(clean_hash, False)
-        elif realdebrid_service:
-            clean_hash = info_hash.lower().strip()
-            is_cached = availability.get(clean_hash, False)
+
+        cached_on = []
+        for name, service in debrid_backends:
+            # Nettoyer le hash (AllDebrid/StremThru ont leur propre logique)
+            if hasattr(service, '_clean_hash'):
+                clean_hash = service._clean_hash(info_hash)
+            else:
+                clean_hash = info_hash.lower().strip()
+
+            if availability_by_provider.get(name, {}).get(clean_hash, False):
+                cached_on.append((name, clean_hash))
+
+        if cached_on:
+            for name, clean_hash in cached_on:
+                cached_torrents.append((torrent, clean_hash, name))
         else:
-            clean_hash = info_hash.lower().strip()
-            is_cached = False
-        
-        if is_cached:
-            cached_torrents.append((torrent, clean_hash))
-        else:
-            uncached_torrents.append((torrent, clean_hash))
+            uncached_torrents.append((torrent, info_hash.lower().strip()))
 
     # Application du Tri
     sort_by = config.get('sort_by', 'tracker_priority')
     
     if sort_by == 'size_asc':
         def get_sort_size(item):
-            torrent, _ = item
+            torrent = item[0]
             return torrent.get('size', 0)
         
         cached_torrents.sort(key=get_sort_size)
@@ -674,7 +815,7 @@ async def handle_stream(request):
         
     elif sort_by == 'size_desc':
         def get_sort_size(item):
-            torrent, _ = item
+            torrent = item[0]
             return torrent.get('size', 0)
         
         cached_torrents.sort(key=get_sort_size, reverse=True)
@@ -685,7 +826,7 @@ async def handle_stream(request):
         providers_order = config.get('providers_order', [])
         if providers_order:
             def get_sort_key(item):
-                torrent, _ = item
+                torrent = item[0]
                 source = torrent.get('source', '')
                 try:
                     return providers_order.index(source)
@@ -699,7 +840,9 @@ async def handle_stream(request):
     logging.info(f"Cached: {len(cached_torrents)}, Uncached: {len(uncached_torrents)}")
     
     # 4a. Streams débridés (cachés)
-    for torrent, clean_hash in cached_torrents:
+    debrid_extensions = {"alldebrid": "AD", "torbox": "TB", "debridlink": "DL", "realdebrid": "RD"}
+
+    for torrent, clean_hash, debrid_provider in cached_torrents:
         # Extraire un nom propre pour les trackers UNIT3D (tracker_name = URL)
         raw_tracker = torrent.get('tracker_name', 'UNIT3D')
         if raw_tracker.startswith('http'):
@@ -721,19 +864,27 @@ async def handle_stream(request):
         
         provider_emoji = "⚡"  # Éclair pour tous les services de débridage
         title = f"{provider_emoji} {meta['name']}\n{torrent.get('name')}\n💾 {size_str}"
-        
-        # URL de résolution (utilise le provider configuré)
+
+        # URL de résolution (utilise le provider où ce torrent est en cache)
         resolve_url = f"{host_url}/{config_str}/resolve/{debrid_provider}/{clean_hash}"
-        
+
         if season is not None and episode is not None:
             resolve_url += f"?season={season}&episode={episode}"
         elif stream_type == 'movie':
             resolve_url += "?type=movie"
 
+        # Tag toujours affiché, avec "+" (convention Torrentio) : permet à AIOStreams
+        # d'identifier le service (service.id) et le statut caché (service.cached = true).
+        # Cette boucle ne contient que des torrents confirmés en cache, le "+" est toujours vrai.
+        provider_tag = f" [{debrid_extensions.get(debrid_provider, debrid_provider.upper())}+]"
+
         streams.append({
-            "name": f"Frenchio{source_prefix}",
+            "name": f"Frenchio{provider_tag}{source_prefix}",
             "title": title,
             "url": resolve_url,
+            # infoHash explicite : permet à AIOStreams de reprendre le torrent
+            # avec son propre débrideur sans extraire le hash de l'URL /resolve/
+            "infoHash": clean_hash,
             "filename": torrent.get('name', ''),
             "size": torrent.get('size', 0),
             "quality": meta.get('quality', ''),
@@ -757,7 +908,7 @@ async def handle_stream(request):
         if cached_torrents:
             logging.info(f"qBittorrent: Skipping {len(uncached_torrents)} uncached torrents (cached results available)")
         else:
-            limit = 10 if (alldebrid_service or torbox_service or debridlink_service or realdebrid_service) else 25  # Plus de résultats si pas de debrid
+            limit = 10 if debrid_backends else 25  # Plus de résultats si pas de debrid
             logging.info(f"qBittorrent: Processing {min(len(uncached_torrents), limit)} torrents (out of {len(uncached_torrents)} available)")
             
             qbit_added = 0
@@ -801,6 +952,7 @@ async def handle_stream(request):
                     "name": f"Frenchio {source_prefix}",
                     "title": title,
                     "url": resolve_url,
+                    "infoHash": clean_hash,
                     "filename": torrent.get('name', ''),
                     "size": torrent.get('size', 0),
                     "quality": meta.get('quality', ''),
@@ -927,6 +1079,26 @@ async def handle_resolve(request):
             raise web.HTTPMovedPermanently(finalize_stream_url(stream_url, config))
         else:
             return web.Response(status=404, text="Could not start qBittorrent stream")
+
+    # === MODE StremThru (proxy API débrideur) ===
+    elif service_name in STREMTHRU_STORES and get_stremthru_url(config):
+        logging.info(f"StremThru resolve [{service_name}]: hash={info_hash}, season={season}, episode={episode}")
+
+        stremthru_service = build_stremthru_service(config, service_name, request)
+        if not stremthru_service:
+            return web.Response(status=400, text=f"{service_name} not configured")
+
+        stream_url = await stremthru_service.unlock_magnet(
+            info_hash,
+            season=int(season) if season else None,
+            episode=int(episode) if episode else None,
+            media_type=media_type
+        )
+
+        if stream_url:
+            raise web.HTTPMovedPermanently(finalize_stream_url(stream_url, config))
+        else:
+            return web.Response(status=404, text="Could not resolve stream via StremThru")
 
     # === MODE AllDebrid ===
     elif service_name == 'alldebrid':
