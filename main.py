@@ -64,7 +64,7 @@ if HTTP_PROXY or HTTPS_PROXY:
         logging.info(f"  HTTPS_PROXY: {HTTPS_PROXY}")
 
 # Version de l'application
-APP_VERSION = "1.8.0"
+APP_VERSION = "1.8.1"
 
 # Stremio Addons Config (signature)
 STREMIO_ADDONS_CONFIG = {
@@ -882,6 +882,9 @@ async def handle_stream(request):
             "name": f"Frenchio{provider_tag}{source_prefix}",
             "title": title,
             "url": resolve_url,
+            # infoHash explicite : permet à AIOStreams de reprendre le torrent
+            # avec son propre débrideur sans extraire le hash de l'URL /resolve/
+            "infoHash": clean_hash,
             "filename": torrent.get('name', ''),
             "size": torrent.get('size', 0),
             "quality": meta.get('quality', ''),
@@ -949,6 +952,7 @@ async def handle_stream(request):
                     "name": f"Frenchio {source_prefix}",
                     "title": title,
                     "url": resolve_url,
+                    "infoHash": clean_hash,
                     "filename": torrent.get('name', ''),
                     "size": torrent.get('size', 0),
                     "quality": meta.get('quality', ''),
