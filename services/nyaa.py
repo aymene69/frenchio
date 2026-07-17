@@ -1,4 +1,5 @@
 import aiohttp
+import asyncio
 import logging
 import urllib.parse
 import xml.etree.ElementTree as ET
@@ -8,17 +9,26 @@ class NyaaService:
     def __init__(self):
         self.base_url = "https://nyaa.si/"
 
-    async def search(self, params):
+    async def search(self, params, max_attempts=3):
         params['page'] = 'rss'
         params['c'] = '0_0' # All categories
         params['f'] = '0'   # No filter
-        
+
         logging.info(f"Nyaa Search: {self.base_url}?{urllib.parse.urlencode(params)}")
 
         async with aiohttp.ClientSession(trust_env=True) as session:
             try:
-                async with session.get(self.base_url, params=params, timeout=20) as response:
-                    if response.status == 200:
+                for attempt in range(max_attempts):
+                    # Nyaa throttle vite (429 dès ~8 requêtes simultanées) : backoff + retry
+                    if attempt > 0:
+                        await asyncio.sleep(1.0 * attempt)
+                    async with session.get(self.base_url, params=params, timeout=20) as response:
+                        if response.status == 429:
+                            logging.warning(f"Nyaa 429 rate-limit (tentative {attempt + 1}/{max_attempts})")
+                            continue
+                        if response.status != 200:
+                            logging.warning(f"Nyaa Error {response.status}")
+                            return []
                         text = await response.text()
                         
                         try:
@@ -89,8 +99,7 @@ class NyaaService:
                             }
                             normalized.append(item)
                         return normalized
-                    else:
-                        logging.warning(f"Nyaa Error {response.status}")
+                logging.warning(f"Nyaa: abandon après {max_attempts} tentatives (rate-limit)")
             except Exception as e:
                 logging.error(f"Nyaa Exception: {e}")
         return []
@@ -114,9 +123,12 @@ class NyaaService:
             
         all_results = []
         seen_hashes = set()
-        
-        import asyncio
-        tasks = [self.search({"q": q}) for q in set(queries)]
+
+        # Lancement étalé (300ms) pour ne pas déclencher le rate-limit de Nyaa
+        tasks = []
+        for q in dict.fromkeys(queries):
+            tasks.append(asyncio.create_task(self.search({"q": q})))
+            await asyncio.sleep(0.3)
         results_list = await asyncio.gather(*tasks, return_exceptions=True)
         
         for res in results_list:

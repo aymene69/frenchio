@@ -128,10 +128,13 @@ class NekoBTService:
             
         all_results = []
         seen_hashes = set()
-        
-        # Exécution parallèle via asyncio.gather
+
+        # Lancement étalé (300ms) pour ne pas déclencher de rate-limit
         import asyncio
-        tasks = [self.search({"q": q, "limit": "100"}) for q in set(queries)]
+        tasks = []
+        for q in dict.fromkeys(queries):
+            tasks.append(asyncio.create_task(self.search({"q": q, "limit": "100"})))
+            await asyncio.sleep(0.3)
         results_list = await asyncio.gather(*tasks, return_exceptions=True)
         
         for res in results_list:
