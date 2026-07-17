@@ -232,6 +232,49 @@ def parse_torrent_name(name):
         "release_type": release_type
     }
 
+def check_absolute_episode(name, absolute_episode, exclude_packs=False):
+    """
+    Vérifie si le torrent correspond à l'épisode en numérotation absolue,
+    utilisée par les fansubs anime (ex: "One Piece S01E1122", "One Piece - 1122 VOSTFR",
+    ou un pack "One Piece 1100-1150").
+    """
+    if absolute_episode is None:
+        return False
+    name_upper = name.upper()
+
+    # SxxEyyyy : numérotation absolue déguisée en saison 1 (ex: S01E1122, avec ranges S01E1100-1150)
+    se_pattern = re.compile(r'(?:S|SAISON|SEASON)[ ._-]?0?1[ ._-]?E(\d{1,4})(?:[ ._-]*(?:E|-|~)[ ._-]*(\d{1,4}))?', re.IGNORECASE)
+    for e_start, e_end in se_pattern.findall(name_upper):
+        try:
+            start = int(e_start)
+            end = int(e_end) if e_end else start
+            if end < start:
+                continue
+            if start < end and exclude_packs:
+                continue
+            if start <= absolute_episode <= end:
+                return True
+        except ValueError:
+            continue
+
+    # Ranges nus (packs) : "1100-1150"
+    if not exclude_packs:
+        range_pattern = re.compile(r'(?<![0-9])(\d{2,4})[ ._]?[-~][ ._]?(\d{2,4})(?![0-9])')
+        for r_start, r_end in range_pattern.findall(name_upper):
+            try:
+                start, end = int(r_start), int(r_end)
+                if start < end and start <= absolute_episode <= end:
+                    return True
+            except ValueError:
+                continue
+
+    # Numéro nu : "- 1122", "E1122", "EP1122" (en excluant 1080P, X264, H.264...)
+    bare_pattern = re.compile(rf'(?<![0-9])(?<!X)(?<!H\.)0*{absolute_episode}(?![0-9])(?!P\b)')
+    if bare_pattern.search(name_upper):
+        return True
+
+    return False
+
 def check_season_episode(name, target_season, target_episode, exclude_packs=False):
     """
     Vérifie si le torrent correspond à la saison/épisode demandé.
