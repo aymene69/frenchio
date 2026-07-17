@@ -98,7 +98,8 @@ Ouvrez votre navigateur sur : `http://localhost:7777/configure`
 #### Services de débridage (Optionnel - Recommandé)
 Vous pouvez cocher **plusieurs débrideurs simultanément** : le cache est vérifié sur chacun
 en parallèle et les liens de tous les services où le torrent est disponible sont proposés
-dans Stremio (tagués `[AD]`, `[TB]`, `[DL]`, `[RD]`).
+dans Stremio, tagués `[AD+]`, `[TB+]`, `[DL+]`, `[RD+]` (convention Torrentio, le `+`
+indiquant un lien en cache — reconnu par AIOStreams pour `service.id` / `service.cached`).
 
 - **AllDebrid API Key** : Votre clé API pour le débridage instantané - [Obtenir](https://alldebrid.com/apikeys/)
 - **TorBox API Key** : Alternative à AllDebrid - [Obtenir](https://torbox.app/settings)

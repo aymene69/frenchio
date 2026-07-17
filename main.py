@@ -62,7 +62,7 @@ if HTTP_PROXY or HTTPS_PROXY:
         logging.info(f"  HTTPS_PROXY: {HTTPS_PROXY}")
 
 # Version de l'application
-APP_VERSION = "1.6.0"
+APP_VERSION = "1.6.1"
 
 # Stremio Addons Config (signature)
 STREMIO_ADDONS_CONFIG = {
@@ -752,8 +752,6 @@ async def handle_stream(request):
     
     # 4a. Streams débridés (cachés)
     debrid_extensions = {"alldebrid": "AD", "torbox": "TB", "debridlink": "DL", "realdebrid": "RD"}
-    # Le tag [AD]/[TB]/... n'est affiché que si plusieurs débrideurs sont configurés
-    show_provider_tag = len(debrid_backends) > 1
 
     for torrent, clean_hash, debrid_provider in cached_torrents:
         # Extraire un nom propre pour les trackers UNIT3D (tracker_name = URL)
@@ -786,7 +784,10 @@ async def handle_stream(request):
         elif stream_type == 'movie':
             resolve_url += "?type=movie"
 
-        provider_tag = f" [{debrid_extensions.get(debrid_provider, debrid_provider.upper())}]" if show_provider_tag else ""
+        # Tag toujours affiché, avec "+" (convention Torrentio) : permet à AIOStreams
+        # d'identifier le service (service.id) et le statut caché (service.cached = true).
+        # Cette boucle ne contient que des torrents confirmés en cache, le "+" est toujours vrai.
+        provider_tag = f" [{debrid_extensions.get(debrid_provider, debrid_provider.upper())}+]"
 
         streams.append({
             "name": f"Frenchio{provider_tag}{source_prefix}",
