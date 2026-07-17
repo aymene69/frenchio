@@ -232,6 +232,55 @@ def parse_torrent_name(name):
         "release_type": release_type
     }
 
+STOPWORDS_TITLE = {'le', 'la', 'les', 'de', 'des', 'du', 'the', 'of', 'no', 'and', 'et', 'wa', 'to', 'ni'}
+
+def check_title_tokens(name, *titles):
+    """
+    Vérification de titre souple pour les nommages fansub (Nyaa/NekoBT) :
+    tous les mots significatifs d'un des titres doivent apparaître entiers
+    dans le nom du torrent. Évite les hors-sujet du type "Monster" qui
+    matche "Pocket Monsters" via un pack/range d'épisodes.
+    """
+    name_words = set(normalize_title(name).split())
+    for title in titles:
+        if not title:
+            continue
+        tokens = [w for w in normalize_title(title).split()
+                  if len(w) >= 2 and w not in STOPWORDS_TITLE]
+        if tokens and all(tok in name_words for tok in tokens):
+            return True
+    return False
+
+def check_special_episode(name, target_episode, exclude_packs=False):
+    """
+    Vérifie si le torrent correspond à un épisode spécial/OVA (saison 0)
+    au nommage fansub : "Titre OVA 06 VOSTFR", "OAV 1+2", "S01 + OAV",
+    ou le classique "S00E01".
+    """
+    if check_season_episode(name, 0, target_episode, exclude_packs=exclude_packs):
+        return True
+    name_upper = name.upper()
+    if not re.search(r'\b(?:OVA|OAV|OAD|SPECIALS?|SP)\b', name_upper):
+        return False
+    # Numéros accolés au tag : "OVA 06", "OAV 1+2", "Special 3"
+    nums = re.findall(r'\b(?:OVA|OAV|OAD|SPECIALS?|SP)\b[ ._#-]*0*(\d{1,3})(?:[ ._+~-]+0*(\d{1,3}))?', name_upper)
+    if not nums:
+        # Tag OVA sans numéro : pack d'OVA ou bundle ("S01 + OAV")
+        return not exclude_packs
+    for start, end in nums:
+        try:
+            s = int(start)
+            e = int(end) if end else s
+            if s > e:
+                s, e = e, s
+            if s != e and exclude_packs:
+                continue
+            if s <= target_episode <= e:
+                return True
+        except ValueError:
+            continue
+    return False
+
 def check_absolute_episode(name, absolute_episode, exclude_packs=False):
     """
     Vérifie si le torrent correspond à l'épisode en numérotation absolue,

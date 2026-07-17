@@ -42,7 +42,7 @@ from services.qbittorrent import QBittorrentService
 from services.tr4ker import Tr4kerService
 from services.nyaa import NyaaService
 from services.nekobt import NekoBTService
-from utils import format_size, parse_torrent_name, check_season_episode, check_absolute_episode, check_title_match, is_video_file
+from utils import format_size, parse_torrent_name, check_season_episode, check_absolute_episode, check_special_episode, check_title_tokens, check_title_match, is_video_file
 
 # Configuration du logging
 logging.basicConfig(
@@ -641,11 +641,23 @@ async def handle_stream(request):
         # pour éviter d'afficher E03 quand on veut E07 (souvent le cas avec recherche floue)
         if stream_type == 'series' and season is not None:
             exclude_packs = config.get('exclude_season_packs', False)
-            if not check_season_episode(t.get('name', ''), season, episode, exclude_packs=exclude_packs):
-                # Nommage anime en numérotation absolue (Nyaa/NekoBT uniquement)
-                if not (t.get('source') in ('nyaa', 'nekobt') and check_absolute_episode(t.get('name', ''), absolute_episode, exclude_packs=exclude_packs)):
-                    # logging.info(f"Filtered out: {t.get('name')} (Wrong Season/Episode)")
-                    continue
+            t_name = t.get('name', '')
+            is_anime_source = t.get('source') in ('nyaa', 'nekobt')
+            if season == 0 and is_anime_source:
+                # OVA/Spéciaux : nommage fansub ("Titre OVA 06") plutôt que S00Exx
+                se_ok = check_special_episode(t_name, episode, exclude_packs=exclude_packs)
+            else:
+                se_ok = check_season_episode(t_name, season, episode, exclude_packs=exclude_packs)
+                if not se_ok and is_anime_source:
+                    # Nommage anime en numérotation absolue (Nyaa/NekoBT uniquement)
+                    se_ok = check_absolute_episode(t_name, absolute_episode, exclude_packs=exclude_packs)
+            # Les acceptations "molles" (pack, range, absolu) sans match SxxExx exact
+            # doivent au moins contenir le titre pour écarter les hors-sujet
+            if se_ok and is_anime_source and not check_season_episode(t_name, season, episode, exclude_packs=True):
+                se_ok = check_title_tokens(t_name, target_title, original_title)
+            if not se_ok:
+                # logging.info(f"Filtered out: {t.get('name')} (Wrong Season/Episode)")
+                continue
 
         # Info Hash est la clé unique (minuscule pour éviter les doublons de casse)
         ih = t.get('info_hash')

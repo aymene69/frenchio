@@ -120,6 +120,12 @@ class NyaaService:
         if absolute_episode is not None and absolute_episode != episode:
             queries.append(f"{title} {absolute_episode:02d}")
             queries.append(f"{title} S01E{absolute_episode:02d}")
+        # OVA / Spéciaux (saison 0) : nommage fansub sans SxxExx
+        if season == 0 and episode is not None:
+            queries.append(f"{title} OVA")
+            queries.append(f"{title} OAV")
+            queries.append(f"{title} Special")
+            queries.append(f"{title} OVA {episode:02d}")
             
         all_results = []
         seen_hashes = set()
