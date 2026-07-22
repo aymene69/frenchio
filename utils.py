@@ -232,7 +232,7 @@ def parse_torrent_name(name):
         "release_type": release_type
     }
 
-def check_season_episode(name, target_season, target_episode):
+def check_season_episode(name, target_season, target_episode, exclude_packs=False):
     """
     Vérifie si le torrent correspond à la saison/épisode demandé.
     Retourne True si c'est bon (match exact ou pack saison).
@@ -267,8 +267,10 @@ def check_season_episode(name, target_season, target_episode):
             if season != target_season:
                 continue
                 
-            # Si pas d'épisode dans le nom (Pack Saison) -> OK
+            # Si pas d'épisode dans le nom (Pack Saison) -> OK sauf si on exclut les packs
             if e_start is None:
+                if exclude_packs:
+                    return False
                 return True
                 
             start = int(e_start)

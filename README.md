@@ -12,7 +12,7 @@ Suite à la fermeture de YGG aux services de debrid, cet addon permet de continu
 
 ## ✨ Fonctionnalités
 
-- 🔍 **Recherche multi-trackers** : UNIT3D, YGGTorrent, ABNormal, C411, Torr9, Tr4ker
+- 🔍 **Recherche multi-trackers** : UNIT3D, YGGTorrent, ABNormal, C411, Tr4ker
 - ⚡ **Débridage multi-services** : AllDebrid, TorBox, Debrid-Link - Streaming instantané des torrents cachés
 - proxy **MediaFlow** optionnel : transite le lien final de lecture via votre instance MediaFlow
 - 📥 **qBittorrent Support** : Streaming direct pour les torrents non-cachés
@@ -32,7 +32,7 @@ Suite à la fermeture de YGG aux services de debrid, cet addon permet de continu
   - [YGGTorrent](https://www.ygg.re/) (activé par défaut, sans compte)
   - [ABNormal](https://abn.lol/) (Username/Password)
   - [C411](https://c411.org/) (Clé API)
-  - [Torr9](https://torr9.net/) (Passkey)
+
   - [Tr4ker](https://tr4ker.net/) (Clé API)
 
 ### Options de streaming
@@ -150,7 +150,7 @@ Frenchio (recherche parallèle)
    ├─→ Trackers UNIT3D
    ├─→ YGGTorrent (toujours actif)
    ├─→ ABNormal
-   ├─→ C411 / Torr9 / Tr4ker
+   ├─→ C411 / Tr4ker
    └─→ (et autres trackers configurés)
    ↓
 Résultats filtrés
@@ -392,7 +392,7 @@ frenchio/
 │   ├── ygg.py             # Client YGGAPI
 │   ├── abn.py             # Client ABNormal
 │   ├── c411.py            # Client C411
-│   ├── torr9.py           # Client Torr9
+
 │   ├── tr4ker.py          # Client Tr4ker (Torznab)
 │   ├── alldebrid.py       # Service AllDebrid (debrid)
 │   ├── torbox.py          # Service TorBox (debrid)
