@@ -229,8 +229,65 @@ def parse_torrent_name(name):
         "quality": quality,
         "codec": codec,
         "language": ", ".join(languages) if languages else "Français",
+        "lang_tags": languages,
         "release_type": release_type
     }
+
+QUALITY_RANK = {"SD": 1, "720p": 2, "1080p": 3, "4K": 4}
+MIN_QUALITY_RANK = {"no_cam": 0, "720p": 2, "1080p": 3, "4k": 4}
+
+def matches_quality_filter(meta, min_quality):
+    """
+    Vérifie qu'un torrent respecte le filtre de qualité minimale configuré.
+    min_quality: "" (aucun filtre), "no_cam", "720p", "1080p", "4k"
+    Les torrents dont la qualité n'a pas pu être détectée sont toujours acceptés
+    (on ne pénalise pas un simple défaut de parsing), sauf pour les CAM/TS qui
+    sont toujours exclus dès qu'un filtre est actif.
+    """
+    if not min_quality:
+        return True
+
+    if meta.get('release_type') == 'CAM':
+        return False
+
+    if min_quality == 'no_cam':
+        return True
+
+    required_rank = MIN_QUALITY_RANK.get(min_quality, 0)
+    torrent_rank = QUALITY_RANK.get(meta.get('quality'), 0)
+
+    # Qualité inconnue (pas de tag détecté) -> on laisse passer
+    if torrent_rank == 0:
+        return True
+
+    return torrent_rank >= required_rank
+
+def matches_language_filter(meta, allowed_languages):
+    """
+    Vérifie qu'un torrent correspond à au moins une des langues autorisées.
+    allowed_languages: liste de tags parmi VF, VFF, VFQ, VOSTFR, Multi, VO.
+    Liste vide -> aucun filtre.
+    """
+    if not allowed_languages:
+        return True
+
+    tags = meta.get('lang_tags') or []
+    if not tags:
+        # Aucune langue détectée dans le nom -> on ne peut pas trancher, on laisse passer
+        return True
+
+    return any(tag in allowed_languages for tag in tags)
+
+def matches_exclude_keywords(name, exclude_keywords):
+    """
+    Exclut un torrent si son nom contient un des mots-clés interdits.
+    exclude_keywords: liste de chaînes (déjà nettoyées/en minuscules).
+    """
+    if not exclude_keywords or not name:
+        return True
+
+    name_lower = name.lower()
+    return not any(kw in name_lower for kw in exclude_keywords)
 
 def check_season_episode(name, target_season, target_episode):
     """

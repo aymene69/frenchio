@@ -13,7 +13,9 @@ Suite à la fermeture de YGG aux services de debrid, cet addon permet de continu
 ## ✨ Fonctionnalités
 
 - 🔍 **Recherche multi-trackers** : UNIT3D, YGGTorrent, ABNormal, C411, Torr9, Tr4ker
-- ⚡ **Débridage multi-services** : AllDebrid, TorBox, Debrid-Link - Streaming instantané des torrents cachés
+- ⚡ **Débridage multi-services simultané** : AllDebrid, TorBox, Debrid-Link, Real-Debrid - tous interrogés en parallèle avec fallback automatique si l'un est indisponible
+- 🧪 **Filtres avancés** : qualité minimale (exclusion CAM/TS, 720p/1080p/4K), langues (VF/VFF/VOSTFR/Multi...), mots-clés exclus, tri par qualité
+- ⚙️ **Cache de recherche** : les résultats d'un épisode déjà cherché sont réutilisés quelques minutes pour accélérer les reprises/seeks
 - proxy **MediaFlow** optionnel : transite le lien final de lecture via votre instance MediaFlow
 - 📥 **qBittorrent Support** : Streaming direct pour les torrents non-cachés
 - 🎯 **Sélection intelligente** : Détection automatique des épisodes dans les packs de saisons
@@ -37,12 +39,13 @@ Suite à la fermeture de YGG aux services de debrid, cet addon permet de continu
 
 ### Options de streaming
 
-**Choisissez au moins une option** :
+**Choisissez au moins une option** (vous pouvez en activer plusieurs à la fois, elles sont alors toutes interrogées en parallèle avec fallback automatique) :
 
 1. **AllDebrid** : [Clé API](https://alldebrid.com/apikeys/) - Streaming instantané des torrents cachés
-2. **TorBox** : [Clé API](https://torbox.app/settings) - Alternative à AllDebrid avec cache
-3. **Debrid-Link** : [Clé API](https://debrid-link.com/webapp/apikey) - Alternative à AllDebrid avec cache
-4. **qBittorrent** : Instance avec WebUI activée - Streaming de tous les torrents
+2. **TorBox** : [Clé API](https://torbox.app/settings) - Alternative/complément à AllDebrid avec cache
+3. **Debrid-Link** : [Clé API](https://debrid-link.com/webapp/apikey) - Alternative/complément à AllDebrid avec cache
+4. **Real-Debrid** : Clé API - Alternative/complément à AllDebrid avec cache
+5. **qBittorrent** : Instance avec WebUI activée - Streaming de tous les torrents
 
 ## 🚀 Installation
 

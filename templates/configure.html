@@ -513,26 +513,23 @@
             </div>
 
             <div class="form-group">
-                <label>Service de débridage <span class="badge">Optionnel</span></label>
+                <label>Services de débridage <span class="badge">Optionnel</span></label>
+                <span class="help-text">Vous pouvez en activer plusieurs à la fois : Frenchio les interroge tous en parallèle et bascule automatiquement sur un autre si l'un est indisponible.</span>
                 <div style="margin-bottom: 15px;">
-                    <label id="debridNoneLabel" class="option-tile">
-                        <input type="radio" name="debridService" value="none" id="debridNone" checked>
-                        <span>Aucun (qBittorrent seulement)</span>
-                    </label>
                     <label class="option-tile">
-                        <input type="radio" name="debridService" value="alldebrid" id="debridAlldebrid">
+                        <input type="checkbox" name="debridService" value="alldebrid" id="debridAlldebrid">
                         <span>AllDebrid</span>
                     </label>
                     <label class="option-tile">
-                        <input type="radio" name="debridService" value="torbox" id="debridTorbox">
+                        <input type="checkbox" name="debridService" value="torbox" id="debridTorbox">
                         <span>TorBox</span>
                     </label>
                     <label class="option-tile">
-                        <input type="radio" name="debridService" value="debridlink" id="debridDebridlink">
+                        <input type="checkbox" name="debridService" value="debridlink" id="debridDebridlink">
                         <span>Debrid-Link</span>
                     </label>
                     <label class="option-tile">
-                        <input type="radio" name="debridService" value="realdebrid" id="debridRealdebrid">
+                        <input type="checkbox" name="debridService" value="realdebrid" id="debridRealdebrid">
                         <span>Real-Debrid</span>
                     </label>
                 </div>
@@ -876,10 +873,63 @@
                     <option value="tracker_priority">Priorité des Trackers</option>
                     <option value="size_asc">Taille (Croissante ⬇️)</option>
                     <option value="size_desc">Taille (Décroissante ⬆️)</option>
+                    <option value="quality_desc">Qualité (Meilleure d'abord 🎞️)</option>
                 </select>
                 <span class="help-text">Choisissez comment les torrents trouvés doivent être ordonnés (les sources
                     débridées restent toujours en premier). L'ordre par Tracker utilisera le drag & drop
                     ci-dessous.</span>
+            </div>
+
+            <div class="form-group">
+                <label for="minQuality">Qualité minimale</label>
+                <select id="minQuality">
+                    <option value="">Aucun filtre</option>
+                    <option value="no_cam">Exclure les CAM/TS</option>
+                    <option value="720p">720p minimum</option>
+                    <option value="1080p">1080p minimum</option>
+                    <option value="4k">4K uniquement</option>
+                </select>
+                <span class="help-text">Les torrents dont la qualité est inconnue (non détectée dans le nom) ne sont
+                    jamais filtrés par cette option.</span>
+            </div>
+
+            <div class="form-group">
+                <label>Langues acceptées</label>
+                <div style="margin-bottom: 15px;">
+                    <label class="option-tile">
+                        <input type="checkbox" name="langFilter" value="VFF" id="langVFF">
+                        <span>🇫🇷 VFF</span>
+                    </label>
+                    <label class="option-tile">
+                        <input type="checkbox" name="langFilter" value="VF" id="langVF">
+                        <span>🇫🇷 VF</span>
+                    </label>
+                    <label class="option-tile">
+                        <input type="checkbox" name="langFilter" value="VFQ" id="langVFQ">
+                        <span>🇨🇦 VFQ</span>
+                    </label>
+                    <label class="option-tile">
+                        <input type="checkbox" name="langFilter" value="VOSTFR" id="langVOSTFR">
+                        <span>🇫🇷🇯🇵 VOSTFR</span>
+                    </label>
+                    <label class="option-tile">
+                        <input type="checkbox" name="langFilter" value="Multi" id="langMulti">
+                        <span>🇫🇷+🇺🇸 Multi</span>
+                    </label>
+                    <label class="option-tile">
+                        <input type="checkbox" name="langFilter" value="VO" id="langVO">
+                        <span>🇺🇸 VO</span>
+                    </label>
+                </div>
+                <span class="help-text">Aucune case cochée = toutes les langues acceptées. Un torrent dont la langue
+                    n'a pas pu être détectée dans son nom n'est jamais filtré par cette option.</span>
+            </div>
+
+            <div class="form-group">
+                <label for="excludeKeywords">Mots-clés à exclure</label>
+                <input type="text" id="excludeKeywords" placeholder="Ex: HDCAM, x265, EVO">
+                <span class="help-text">Liste de mots-clés séparés par des virgules. Tout torrent dont le nom contient
+                    un de ces mots (insensible à la casse) sera exclu des résultats.</span>
             </div>
         </div>
 
@@ -1032,43 +1082,42 @@
             input.addEventListener('input', updateProviderActiveStates);
         });
 
-        // Gestion des radio buttons pour le service de débridage
+        // Gestion des checkboxes pour les services de débridage (plusieurs actifs à la fois)
         function updateDebridFields() {
-            const selectedService = document.querySelector('input[name="debridService"]:checked').value;
-
             document.getElementById('alldebridKeyGroup').style.display =
-                selectedService === 'alldebrid' ? 'block' : 'none';
+                document.getElementById('debridAlldebrid').checked ? 'block' : 'none';
             document.getElementById('torboxKeyGroup').style.display =
-                selectedService === 'torbox' ? 'block' : 'none';
+                document.getElementById('debridTorbox').checked ? 'block' : 'none';
             document.getElementById('debridlinkKeyGroup').style.display =
-                selectedService === 'debridlink' ? 'block' : 'none';
+                document.getElementById('debridDebridlink').checked ? 'block' : 'none';
             document.getElementById('realdebridKeyGroup').style.display =
-                selectedService === 'realdebrid' ? 'block' : 'none';
+                document.getElementById('debridRealdebrid').checked ? 'block' : 'none';
         }
 
-        document.querySelectorAll('input[name="debridService"]').forEach(radio => {
-            radio.addEventListener('change', updateDebridFields);
+        document.querySelectorAll('input[name="debridService"]').forEach(checkbox => {
+            checkbox.addEventListener('change', updateDebridFields);
         });
 
         // Chargement initial
         if (prefillConfig && Object.keys(prefillConfig).length > 0) {
             document.getElementById('tmdbKey').value = prefillConfig.tmdb_key || '';
 
-            // Détecter quel service est configuré
+            // Cocher chaque service qui a une clé renseignée (plusieurs possibles à la fois)
             if (prefillConfig.alldebrid_key && prefillConfig.alldebrid_key.trim()) {
                 document.getElementById('debridAlldebrid').checked = true;
                 document.getElementById('alldebridKey').value = prefillConfig.alldebrid_key;
-            } else if (prefillConfig.torbox_key && prefillConfig.torbox_key.trim()) {
+            }
+            if (prefillConfig.torbox_key && prefillConfig.torbox_key.trim()) {
                 document.getElementById('debridTorbox').checked = true;
                 document.getElementById('torboxKey').value = prefillConfig.torbox_key;
-            } else if (prefillConfig.debridlink_key && prefillConfig.debridlink_key.trim()) {
+            }
+            if (prefillConfig.debridlink_key && prefillConfig.debridlink_key.trim()) {
                 document.getElementById('debridDebridlink').checked = true;
                 document.getElementById('debridlinkKey').value = prefillConfig.debridlink_key;
-            } else if (prefillConfig.realdebrid_key && prefillConfig.realdebrid_key.trim()) {
+            }
+            if (prefillConfig.realdebrid_key && prefillConfig.realdebrid_key.trim()) {
                 document.getElementById('debridRealdebrid').checked = true;
                 document.getElementById('realdebridKey').value = prefillConfig.realdebrid_key;
-            } else {
-                document.getElementById('debridNone').checked = true;
             }
 
             updateDebridFields();
@@ -1112,6 +1161,24 @@
                 document.getElementById('sortBy').value = prefillConfig.sort_by;
             }
 
+            // Filtre de qualité minimale
+            if (prefillConfig.min_quality) {
+                document.getElementById('minQuality').value = prefillConfig.min_quality;
+            }
+
+            // Filtre de langues
+            if (prefillConfig.languages && prefillConfig.languages.length > 0) {
+                prefillConfig.languages.forEach(lang => {
+                    const el = document.querySelector(`input[name="langFilter"][value="${lang}"]`);
+                    if (el) el.checked = true;
+                });
+            }
+
+            // Mots-clés exclus
+            if (prefillConfig.exclude_keywords) {
+                document.getElementById('excludeKeywords').value = prefillConfig.exclude_keywords;
+            }
+
             // Ordre de priorité
             if (prefillConfig.providers_order && prefillConfig.providers_order.length > 0) {
                 const list = document.getElementById('trackerOrderList');
@@ -1136,19 +1203,6 @@
             const qbitSection = document.getElementById('qbittorrentSection');
             if (qbitSection) {
                 qbitSection.style.display = 'none';
-            }
-
-            // Masquer l'option "Aucun (qBittorrent seulement)"
-            const debridNoneLabel = document.getElementById('debridNoneLabel');
-            if (debridNoneLabel) {
-                debridNoneLabel.style.display = 'none';
-            }
-
-            // Si "Aucun" était sélectionné, sélectionner AllDebrid par défaut
-            const debridNone = document.getElementById('debridNone');
-            if (debridNone && debridNone.checked) {
-                document.getElementById('debridAlldebrid').checked = true;
-                updateDebridFields();
             }
         }
 
@@ -1180,38 +1234,44 @@
         function generateLink() {
             const tmdbKey = document.getElementById('tmdbKey').value.trim();
 
-            // Vérifier quel service de débridage est sélectionné
-            const selectedDebrid = document.querySelector('input[name="debridService"]:checked').value;
+            // Chaque service de débridage coché doit avoir sa clé renseignée.
+            // Plusieurs peuvent être actifs simultanément : Frenchio les interroge tous
+            // en parallèle et bascule automatiquement sur un autre en cas d'indisponibilité.
             let alldebridKey = '';
             let torboxKey = '';
             let debridlinkKey = '';
             let realdebridKey = '';
 
-            if (selectedDebrid === 'alldebrid') {
+            if (document.getElementById('debridAlldebrid').checked) {
                 alldebridKey = document.getElementById('alldebridKey').value.trim();
                 if (!alldebridKey) {
                     alert("Erreur : Veuillez entrer votre clé API AllDebrid.");
                     return;
                 }
-            } else if (selectedDebrid === 'torbox') {
+            }
+            if (document.getElementById('debridTorbox').checked) {
                 torboxKey = document.getElementById('torboxKey').value.trim();
                 if (!torboxKey) {
                     alert("Erreur : Veuillez entrer votre clé API TorBox.");
                     return;
                 }
-            } else if (selectedDebrid === 'debridlink') {
+            }
+            if (document.getElementById('debridDebridlink').checked) {
                 debridlinkKey = document.getElementById('debridlinkKey').value.trim();
                 if (!debridlinkKey) {
                     alert("Erreur : Veuillez entrer votre clé API Debrid-Link.");
                     return;
                 }
-            } else if (selectedDebrid === 'realdebrid') {
+            }
+            if (document.getElementById('debridRealdebrid').checked) {
                 realdebridKey = document.getElementById('realdebridKey').value.trim();
                 if (!realdebridKey) {
                     alert("Erreur : Veuillez entrer votre clé API Real-Debrid.");
                     return;
                 }
             }
+
+            const hasAnyDebrid = !!(alldebridKey || torboxKey || debridlinkKey || realdebridKey);
 
             // qBit Config
             const qbitUrl = document.getElementById('qbitUrl').value.trim();
@@ -1230,13 +1290,17 @@
             const tr4kerApikey = document.getElementById('tr4kerApikey').value.trim();
             const maxSize = parseInt(document.getElementById('maxSize').value) || 0;
             const sortBy = document.getElementById('sortBy').value;
+            const minQuality = document.getElementById('minQuality').value;
+            const languages = Array.from(document.querySelectorAll('input[name="langFilter"]:checked'))
+                .map(el => el.value);
+            const excludeKeywords = document.getElementById('excludeKeywords').value.trim();
 
             if (!tmdbKey) {
                 alert("Erreur : La clé TMDB est obligatoire.");
                 return;
             }
 
-            if (selectedDebrid === 'none' && !hasQbit) {
+            if (!hasAnyDebrid && !hasQbit) {
                 if (!qbittorrentEnabled) {
                     alert("Erreur : qBittorrent est désactivé sur ce serveur. Vous devez configurer un service de débridage (AllDebrid, TorBox, Debrid-Link ou Real-Debrid).");
                 } else {
@@ -1283,6 +1347,9 @@
                 tr4ker_apikey: tr4kerApikey,
                 max_size: maxSize,
                 sort_by: sortBy,
+                min_quality: minQuality,
+                languages: languages,
+                exclude_keywords: excludeKeywords,
                 providers_order: providersOrder,
                 mediaflow: mediaflowProxyUrl ? {
                     proxy_url: mediaflowProxyUrl,
