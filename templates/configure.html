@@ -64,7 +64,7 @@
             background: linear-gradient(135deg, var(--bg) 0%, var(--bg-secondary) 100%);
             color: var(--text);
             margin: 0;
-            padding: 20px;
+            padding: 20px 20px 110px;
             line-height: 1.6;
             min-height: 100vh;
             transition: background 0.5s ease, color 0.3s ease;
@@ -93,7 +93,7 @@
 
         header {
             text-align: center;
-            margin-bottom: 48px;
+            margin-bottom: 40px;
             position: relative;
         }
 
@@ -159,9 +159,25 @@
             font-size: 1.375rem;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             font-weight: 700;
             color: var(--text);
+        }
+
+        .card-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: rgba(99, 102, 241, 0.12);
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        [data-theme="dark"] .card-icon {
+            background: rgba(129, 140, 248, 0.18);
         }
 
         .badge {
@@ -308,6 +324,15 @@
         .option-tile:hover {
             border-color: var(--border-hover);
             box-shadow: var(--shadow-sm);
+        }
+
+        .option-tile:has(input:checked) {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(129, 140, 248, 0.12) 100%);
+        }
+
+        [data-theme="dark"] .option-tile:has(input:checked) {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(129, 140, 248, 0.15) 100%);
         }
 
         .btn {
@@ -464,6 +489,184 @@
         .info-box a:hover {
             opacity: 0.9;
         }
+
+        /* ---------- Stepper (nouvel UI) ---------- */
+
+        .stepper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        .step-dot {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.95rem;
+            border: 2px solid var(--border);
+            background: var(--card-bg);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: var(--transition);
+            flex-shrink: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .step-dot:hover {
+            border-color: var(--primary-light);
+            transform: translateY(-1px);
+        }
+
+        .step-dot.active {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            box-shadow: var(--shadow);
+        }
+
+        .step-dot.completed {
+            border-color: var(--primary);
+            background: var(--card-bg);
+            color: var(--primary);
+        }
+
+        .step-connector {
+            width: 44px;
+            height: 2px;
+            background: var(--border);
+            flex-shrink: 0;
+            transition: var(--transition);
+        }
+
+        .step-connector.completed {
+            background: var(--primary);
+        }
+
+        .step-label {
+            text-align: center;
+            margin-bottom: 36px;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.9375rem;
+        }
+
+        .step-label .step-title {
+            color: var(--text);
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: block;
+            margin-top: 6px;
+        }
+
+        .step-panel {
+            display: none;
+        }
+
+        .step-panel.active {
+            display: block;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        /* Barre flottante : toujours visible en bas de l'écran, même si l'étape
+           en cours est plus longue que la fenêtre (évite d'avoir à scroller
+           pour retrouver les boutons Précédent/Suivant). */
+        .step-nav {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            padding: 16px 20px;
+            padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+            background: var(--card-bg);
+            border-top: 1px solid var(--border);
+            box-shadow: 0 -6px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        [data-theme="dark"] .step-nav {
+            box-shadow: 0 -6px 16px rgba(0, 0, 0, 0.35);
+        }
+
+        .step-nav-inner {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .step-nav .btn {
+            width: auto;
+        }
+
+        .step-nav-inner .btn:only-child {
+            margin-left: auto;
+        }
+
+        .summary-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 8px 20px;
+            margin-bottom: 24px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9375rem;
+            gap: 16px;
+        }
+
+        .summary-row:last-child {
+            border-bottom: none;
+        }
+
+        .summary-row .summary-label {
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .summary-row .summary-value {
+            color: var(--text);
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .summary-value.ok {
+            color: var(--success);
+        }
+
+        .summary-value.warn {
+            color: var(--warning);
+        }
+
+        @media (max-width: 600px) {
+            .step-dot {
+                width: 32px;
+                height: 32px;
+                font-size: 0.8rem;
+            }
+
+            .step-connector {
+                width: 18px;
+            }
+
+            .step-label .step-title {
+                font-size: 1.25rem;
+            }
+        }
     </style>
 </head>
 
@@ -499,509 +702,595 @@
             </p>
         </div>
 
-        <!-- Services Obligatoires -->
-        <div class="card">
-            <div class="card-header">
-                <h2>🔑 Services Requis</h2>
-            </div>
+        <!-- Stepper -->
+        <div class="stepper" id="stepTop">
+            <div class="step-dot" data-step="1" onclick="goStep(1)">1</div>
+            <div class="step-connector" data-step="1"></div>
+            <div class="step-dot" data-step="2" onclick="goStep(2)">2</div>
+            <div class="step-connector" data-step="2"></div>
+            <div class="step-dot" data-step="3" onclick="goStep(3)">3</div>
+            <div class="step-connector" data-step="3"></div>
+            <div class="step-dot" data-step="4" onclick="goStep(4)">4</div>
+            <div class="step-connector" data-step="4"></div>
+            <div class="step-dot" data-step="5" onclick="goStep(5)">5</div>
+        </div>
+        <div class="step-label">
+            <span id="stepLabel">Étape 1/5</span>
+            <span class="step-title" id="stepTitle">Clé TMDB</span>
+        </div>
 
-            <div class="form-group">
-                <label for="tmdbKey">Clé API TMDB (v3)</label>
-                <input type="text" id="tmdbKey" placeholder="Ex: a1b2c3d4...">
-                <span class="help-text">Nécessaire pour récupérer les titres corrects. <a
-                        href="https://www.themoviedb.org/settings/api" target="_blank">Obtenir ma clé</a></span>
-            </div>
-
-            <div class="form-group">
-                <label>Services de débridage <span class="badge">Optionnel</span></label>
-                <span class="help-text">Vous pouvez en activer plusieurs à la fois : Frenchio les interroge tous en parallèle et bascule automatiquement sur un autre si l'un est indisponible.</span>
-                <div style="margin-bottom: 15px;">
-                    <label class="option-tile">
-                        <input type="checkbox" name="debridService" value="alldebrid" id="debridAlldebrid">
-                        <span>AllDebrid</span>
-                    </label>
-                    <label class="option-tile">
-                        <input type="checkbox" name="debridService" value="torbox" id="debridTorbox">
-                        <span>TorBox</span>
-                    </label>
-                    <label class="option-tile">
-                        <input type="checkbox" name="debridService" value="debridlink" id="debridDebridlink">
-                        <span>Debrid-Link</span>
-                    </label>
-                    <label class="option-tile">
-                        <input type="checkbox" name="debridService" value="realdebrid" id="debridRealdebrid">
-                        <span>Real-Debrid</span>
-                    </label>
+        <!-- ===================== ÉTAPE 1 : TMDB ===================== -->
+        <div class="step-panel" data-step="1">
+            <div class="card">
+                <div class="card-header">
+                    <h2><span class="card-icon">🔑</span> Clé API TMDB</h2>
                 </div>
-            </div>
+                <p class="help-text" style="margin-bottom: 20px;">
+                    C'est la seule clé obligatoire : elle sert à retrouver le bon titre (français) pour chaque
+                    film/série avant de chercher sur les trackers. Tout le reste de la configuration est optionnel et
+                    dépend de ce que vous utilisez déjà.
+                </p>
 
-            <div class="form-group" id="alldebridKeyGroup" style="display: none;">
-                <label for="alldebridKey">Clé API AllDebrid</label>
-                <input type="text" id="alldebridKey" placeholder="Ex: xYz123...">
-                <span class="help-text">Pour vérifier le cache et débrider les liens. <a
-                        href="https://alldebrid.com/apikeys" target="_blank">Obtenir ma clé</a></span>
-            </div>
-
-            <div class="form-group" id="torboxKeyGroup" style="display: none;">
-                <label for="torboxKey">Clé API TorBox</label>
-                <input type="text" id="torboxKey" placeholder="Ex: abc123...">
-                <span class="help-text">Alternative à AllDebrid. <a href="https://torbox.app/settings"
-                        target="_blank">Obtenir ma clé</a></span>
-            </div>
-
-            <div class="form-group" id="debridlinkKeyGroup" style="display: none;">
-                <label for="debridlinkKey">Clé API Debrid-Link</label>
-                <input type="text" id="debridlinkKey" placeholder="Ex: xyz789...">
-                <span class="help-text">Alternative à AllDebrid. <a href="https://debrid-link.com/webapp/apikey"
-                        target="_blank">Obtenir ma clé</a></span>
-            </div>
-
-            <div class="form-group" id="realdebridKeyGroup" style="display: none;">
-                <label for="realdebridKey">Clé API Real-Debrid</label>
-                <input type="text" id="realdebridKey" placeholder="Ex: abc123...">
-                <span class="help-text">Alternative à AllDebrid. <a href="https://real-debrid.com/apitoken"
-                        target="_blank">Obtenir ma clé</a></span>
-            </div>
-
-            <div class="form-group" style="margin-top: 20px;">
-                <label for="mediaflowProxyUrl">URL MediaFlow Proxy <span class="badge">Optionnel</span></label>
-                <input type="url" id="mediaflowProxyUrl" placeholder="https://mediaflow.mondomaine.com">
-                <span class="help-text">Proxy optionnel appliqué au lien final de lecture. Utile si vous faites transiter les streams via MediaFlow.</span>
-            </div>
-
-            <div class="form-group">
-                <label for="mediaflowApiPassword">Mot de passe API MediaFlow</label>
-                <div class="password-input-wrapper">
-                    <input type="password" id="mediaflowApiPassword" placeholder="Laisser vide si non utilisé">
-                    <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('mediaflowApiPassword', this)" title="Afficher/Masquer">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                    </button>
+                <div class="form-group">
+                    <label for="tmdbKey">Clé API TMDB (v3)</label>
+                    <input type="text" id="tmdbKey" placeholder="Ex: a1b2c3d4...">
+                    <span class="help-text">Nécessaire pour récupérer les titres corrects. <a
+                            href="https://www.themoviedb.org/settings/api" target="_blank">Obtenir ma clé</a></span>
                 </div>
-                <span class="help-text">Optionnel. Sera ajouté à l'URL du proxy si votre instance MediaFlow est protégée.</span>
             </div>
         </div>
 
-        <!-- Optionnel: qBittorrent -->
-        <div class="card" id="qbittorrentSection">
-            <div class="card-header">
-                <h2>📥 Client Torrent (qBittorrent) <span class="badge">Optionnel</span></h2>
-            </div>
-            <p class="help-text">
-                Alternative à AllDebrid : téléchargez directement sur votre serveur/NAS.
-                Nécessite un serveur Web (Nginx/Apache) qui expose le dossier de téléchargement.
-            </p>
-
-            <div class="form-group">
-                <label for="qbitUrl">URL qBittorrent (WebUI)</label>
-                <input type="url" id="qbitUrl" placeholder="http://192.168.1.50:8080">
-            </div>
-
-            <div style="display: flex; gap: 15px;">
-                <div class="form-group" style="flex: 1;">
-                    <label for="qbitUser">Utilisateur</label>
-                    <input type="text" id="qbitUser" placeholder="admin">
+        <!-- ===================== ÉTAPE 2 : DÉBRIDEURS & LECTURE ===================== -->
+        <div class="step-panel" data-step="2">
+            <div class="card">
+                <div class="card-header">
+                    <h2><span class="card-icon">⚡</span> Services de débridage <span class="badge">Optionnel</span>
+                    </h2>
                 </div>
-                <div class="form-group" style="flex: 1;">
-                    <label for="qbitPass">Mot de passe</label>
+
+                <div class="form-group">
+                    <span class="help-text">Vous pouvez en activer plusieurs à la fois : Frenchio les interroge tous
+                        en parallèle et bascule automatiquement sur un autre si l'un est indisponible.</span>
+                    <div style="margin-top: 15px;">
+                        <label class="option-tile">
+                            <input type="checkbox" name="debridService" value="alldebrid" id="debridAlldebrid">
+                            <span>AllDebrid</span>
+                        </label>
+                        <label class="option-tile">
+                            <input type="checkbox" name="debridService" value="torbox" id="debridTorbox">
+                            <span>TorBox</span>
+                        </label>
+                        <label class="option-tile">
+                            <input type="checkbox" name="debridService" value="debridlink" id="debridDebridlink">
+                            <span>Debrid-Link</span>
+                        </label>
+                        <label class="option-tile">
+                            <input type="checkbox" name="debridService" value="realdebrid" id="debridRealdebrid">
+                            <span>Real-Debrid</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group" id="alldebridKeyGroup" style="display: none;">
+                    <label for="alldebridKey">Clé API AllDebrid</label>
+                    <input type="text" id="alldebridKey" placeholder="Ex: xYz123...">
+                    <span class="help-text">Pour vérifier le cache et débrider les liens. <a
+                            href="https://alldebrid.com/apikeys" target="_blank">Obtenir ma clé</a></span>
+                </div>
+
+                <div class="form-group" id="torboxKeyGroup" style="display: none;">
+                    <label for="torboxKey">Clé API TorBox</label>
+                    <input type="text" id="torboxKey" placeholder="Ex: abc123...">
+                    <span class="help-text">Alternative à AllDebrid. <a href="https://torbox.app/settings"
+                            target="_blank">Obtenir ma clé</a></span>
+                </div>
+
+                <div class="form-group" id="debridlinkKeyGroup" style="display: none;">
+                    <label for="debridlinkKey">Clé API Debrid-Link</label>
+                    <input type="text" id="debridlinkKey" placeholder="Ex: xyz789...">
+                    <span class="help-text">Alternative à AllDebrid. <a href="https://debrid-link.com/webapp/apikey"
+                            target="_blank">Obtenir ma clé</a></span>
+                </div>
+
+                <div class="form-group" id="realdebridKeyGroup" style="display: none;">
+                    <label for="realdebridKey">Clé API Real-Debrid</label>
+                    <input type="text" id="realdebridKey" placeholder="Ex: abc123...">
+                    <span class="help-text">Alternative à AllDebrid. <a href="https://real-debrid.com/apitoken"
+                            target="_blank">Obtenir ma clé</a></span>
+                </div>
+
+                <div class="form-group" style="margin-top: 20px;">
+                    <label for="mediaflowProxyUrl">URL MediaFlow Proxy <span class="badge">Optionnel</span></label>
+                    <input type="url" id="mediaflowProxyUrl" placeholder="https://mediaflow.mondomaine.com">
+                    <span class="help-text">Proxy optionnel appliqué au lien final de lecture. Utile si vous faites
+                        transiter les streams via MediaFlow.</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="mediaflowApiPassword">Mot de passe API MediaFlow</label>
                     <div class="password-input-wrapper">
-                        <input type="password" id="qbitPass">
-                        <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('qbitPass', this)" title="Afficher/Masquer">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        <input type="password" id="mediaflowApiPassword" placeholder="Laisser vide si non utilisé">
+                        <button type="button" class="password-toggle-btn"
+                            onclick="togglePasswordVisibility('mediaflowApiPassword', this)" title="Afficher/Masquer">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
                         </button>
                     </div>
+                    <span class="help-text">Optionnel. Sera ajouté à l'URL du proxy si votre instance MediaFlow est
+                        protégée.</span>
                 </div>
             </div>
 
-            <div class="form-group">
-                <label for="qbitPublicUrl">URL Publique des Fichiers</label>
-                <input type="url" id="qbitPublicUrl" placeholder="http://monserveur.com/downloads">
-                <span class="help-text">L'adresse HTTP où Stremio pourra lire les fichiers téléchargés.</span>
+            <!-- Optionnel: qBittorrent -->
+            <div class="card" id="qbittorrentSection">
+                <div class="card-header">
+                    <h2><span class="card-icon">📥</span> Client Torrent (qBittorrent) <span
+                            class="badge">Optionnel</span></h2>
+                </div>
+                <p class="help-text">
+                    Alternative à AllDebrid : téléchargez directement sur votre serveur/NAS.
+                    Nécessite un serveur Web (Nginx/Apache) qui expose le dossier de téléchargement.
+                </p>
+
+                <div class="form-group">
+                    <label for="qbitUrl">URL qBittorrent (WebUI)</label>
+                    <input type="url" id="qbitUrl" placeholder="http://192.168.1.50:8080">
+                </div>
+
+                <div style="display: flex; gap: 15px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label for="qbitUser">Utilisateur</label>
+                        <input type="text" id="qbitUser" placeholder="admin">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label for="qbitPass">Mot de passe</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="qbitPass">
+                            <button type="button" class="password-toggle-btn"
+                                onclick="togglePasswordVisibility('qbitPass', this)" title="Afficher/Masquer">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="qbitPublicUrl">URL Publique des Fichiers</label>
+                    <input type="url" id="qbitPublicUrl" placeholder="http://monserveur.com/downloads">
+                    <span class="help-text">L'adresse HTTP où Stremio pourra lire les fichiers téléchargés.</span>
+                </div>
             </div>
         </div>
 
-        <!-- Trackers Semi-Privés/Publics -->
-        <div class="card">
-            <div class="card-header">
-                <h2>🌐 Trackers Publics / Semi-Privés</h2>
-            </div>
-            <p class="help-text" style="margin-bottom: 20px;">
-                <strong>YGG est activé par défaut</strong>, avec ou sans passkey. Cliquez sur un tracker pour le
-                configurer.
-            </p>
-
-            <style>
-                .provider-grid {
-                    display: grid;
-                    grid-template-columns: repeat(2, 1fr);
-                    gap: 12px;
-                    margin-bottom: 16px;
-                }
-
-                .provider-card {
-                    background: var(--bg-secondary);
-                    border: 2px solid var(--border);
-                    border-radius: var(--radius);
-                    cursor: pointer;
-                    transition: var(--transition);
-                    overflow: hidden;
-                }
-
-                .provider-card:hover {
-                    border-color: var(--border-hover);
-                    box-shadow: var(--shadow-sm);
-                }
-
-                .provider-card.active {
-                    border-color: var(--primary);
-                    background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(129, 140, 248, 0.08) 100%);
-                }
-
-                [data-theme="dark"] .provider-card.active {
-                    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(129, 140, 248, 0.1) 100%);
-                }
-
-                .provider-header {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    padding: 14px 16px;
-                }
-
-                .provider-header .provider-name {
-                    font-weight: 600;
-                    font-size: 0.9375rem;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                }
-
-                .provider-header .provider-dot {
-                    width: 8px;
-                    height: 8px;
-                    border-radius: 50%;
-                    background: var(--border);
-                    transition: var(--transition);
-                    flex-shrink: 0;
-                }
-
-                .provider-card.active .provider-dot {
-                    background: var(--success);
-                    box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);
-                }
-
-                .provider-header .provider-chevron {
-                    font-size: 0.75rem;
-                    color: var(--text-muted);
-                    transition: transform 0.3s ease;
-                }
-
-                .provider-card.expanded .provider-chevron {
-                    transform: rotate(180deg);
-                }
-
-                .provider-body {
-                    max-height: 0;
-                    overflow: hidden;
-                    transition: max-height 0.35s ease, padding 0.35s ease;
-                    padding: 0 16px;
-                }
-
-                .provider-card.expanded .provider-body {
-                    max-height: 300px;
-                    padding: 0 16px 16px 16px;
-                }
-
-                .provider-body .form-group {
-                    margin-bottom: 12px;
-                }
-
-                .provider-body .form-group:last-child {
-                    margin-bottom: 0;
-                }
-
-                .provider-body label {
-                    font-size: 0.8125rem;
-                    margin-bottom: 6px;
-                }
-
-                .provider-badge {
-                    font-size: 0.6875rem;
-                    padding: 2px 6px;
-                    border-radius: 4px;
-                    background: var(--primary);
-                    color: white;
-                    font-weight: 600;
-                    letter-spacing: 0.3px;
-                }
-
-                .provider-badge.always-on {
-                    background: var(--success);
-                }
-            </style>
-
-            <div class="provider-grid">
-                <!-- YGG -->
-                <div class="provider-card active" id="providerYgg">
-                    <div class="provider-header">
-                        <span class="provider-name">
-                            <span class="provider-dot"></span>
-                            YGG <span class="provider-badge always-on">ACTIF</span>
-                        </span>
-                    </div>
+        <!-- ===================== ÉTAPE 3 : TRACKERS ===================== -->
+        <div class="step-panel" data-step="3">
+            <!-- Trackers Semi-Privés/Publics -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><span class="card-icon">🌐</span> Trackers Publics / Semi-Privés</h2>
                 </div>
+                <p class="help-text" style="margin-bottom: 20px;">
+                    <strong>YGG est activé par défaut</strong>, avec ou sans passkey. Cliquez sur un tracker pour le
+                    configurer.
+                </p>
 
-                <!-- ABN -->
-                <div class="provider-card" id="providerAbn" onclick="toggleProvider('providerAbn')">
-                    <div class="provider-header">
-                        <span class="provider-name">
-                            <span class="provider-dot"></span>
-                            ABN
-                        </span>
-                        <span class="provider-chevron">▼</span>
-                    </div>
-                    <div class="provider-body">
-                        <div class="form-group">
-                            <label for="abnUsername">Identifiant</label>
-                            <input type="text" id="abnUsername" placeholder="Nom d'utilisateur"
-                                onclick="event.stopPropagation()">
+                <style>
+                    .provider-grid {
+                        display: grid;
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 12px;
+                        margin-bottom: 16px;
+                    }
+
+                    .provider-card {
+                        background: var(--bg-secondary);
+                        border: 2px solid var(--border);
+                        border-radius: var(--radius);
+                        cursor: pointer;
+                        transition: var(--transition);
+                        overflow: hidden;
+                    }
+
+                    .provider-card:hover {
+                        border-color: var(--border-hover);
+                        box-shadow: var(--shadow-sm);
+                    }
+
+                    .provider-card.active {
+                        border-color: var(--primary);
+                        background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(129, 140, 248, 0.08) 100%);
+                    }
+
+                    [data-theme="dark"] .provider-card.active {
+                        background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(129, 140, 248, 0.1) 100%);
+                    }
+
+                    .provider-header {
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        padding: 14px 16px;
+                    }
+
+                    .provider-header .provider-name {
+                        font-weight: 600;
+                        font-size: 0.9375rem;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    }
+
+                    .provider-header .provider-dot {
+                        width: 8px;
+                        height: 8px;
+                        border-radius: 50%;
+                        background: var(--border);
+                        transition: var(--transition);
+                        flex-shrink: 0;
+                    }
+
+                    .provider-card.active .provider-dot {
+                        background: var(--success);
+                        box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);
+                    }
+
+                    .provider-header .provider-chevron {
+                        font-size: 0.75rem;
+                        color: var(--text-muted);
+                        transition: transform 0.3s ease;
+                    }
+
+                    .provider-card.expanded .provider-chevron {
+                        transform: rotate(180deg);
+                    }
+
+                    .provider-body {
+                        max-height: 0;
+                        overflow: hidden;
+                        transition: max-height 0.35s ease, padding 0.35s ease;
+                        padding: 0 16px;
+                    }
+
+                    .provider-card.expanded .provider-body {
+                        max-height: 300px;
+                        padding: 0 16px 16px 16px;
+                    }
+
+                    .provider-body .form-group {
+                        margin-bottom: 12px;
+                    }
+
+                    .provider-body .form-group:last-child {
+                        margin-bottom: 0;
+                    }
+
+                    .provider-body label {
+                        font-size: 0.8125rem;
+                        margin-bottom: 6px;
+                    }
+
+                    .provider-badge {
+                        font-size: 0.6875rem;
+                        padding: 2px 6px;
+                        border-radius: 4px;
+                        background: var(--primary);
+                        color: white;
+                        font-weight: 600;
+                        letter-spacing: 0.3px;
+                    }
+
+                    .provider-badge.always-on {
+                        background: var(--success);
+                    }
+                </style>
+
+                <div class="provider-grid">
+                    <!-- YGG -->
+                    <div class="provider-card active" id="providerYgg">
+                        <div class="provider-header">
+                            <span class="provider-name">
+                                <span class="provider-dot"></span>
+                                YGG <span class="provider-badge always-on">ACTIF</span>
+                            </span>
                         </div>
-                        <div class="form-group">
-                            <label for="abnPassword">Mot de passe</label>
-                            <div class="password-input-wrapper" onclick="event.stopPropagation()">
-                                <input type="password" id="abnPassword" placeholder="Mot de passe">
-                                <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('abnPassword', this)" title="Afficher/Masquer">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                                </button>
+                    </div>
+
+                    <!-- ABN -->
+                    <div class="provider-card" id="providerAbn" onclick="toggleProvider('providerAbn')">
+                        <div class="provider-header">
+                            <span class="provider-name">
+                                <span class="provider-dot"></span>
+                                ABN
+                            </span>
+                            <span class="provider-chevron">▼</span>
+                        </div>
+                        <div class="provider-body">
+                            <div class="form-group">
+                                <label for="abnUsername">Identifiant</label>
+                                <input type="text" id="abnUsername" placeholder="Nom d'utilisateur"
+                                    onclick="event.stopPropagation()">
+                            </div>
+                            <div class="form-group">
+                                <label for="abnPassword">Mot de passe</label>
+                                <div class="password-input-wrapper" onclick="event.stopPropagation()">
+                                    <input type="password" id="abnPassword" placeholder="Mot de passe">
+                                    <button type="button" class="password-toggle-btn"
+                                        onclick="togglePasswordVisibility('abnPassword', this)" title="Afficher/Masquer">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round"
+                                            style="width:20px;height:20px">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                            <circle cx="12" cy="12" r="3" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <span class="help-text">⚠️ ABN ralentit les recherches.</span>
+                        </div>
+                    </div>
+
+                    <!-- C411 -->
+                    <div class="provider-card" id="providerC411" onclick="toggleProvider('providerC411')">
+                        <div class="provider-header">
+                            <span class="provider-name">
+                                <span class="provider-dot"></span>
+                                C411
+                            </span>
+                            <span class="provider-chevron">▼</span>
+                        </div>
+                        <div class="provider-body">
+                            <div class="form-group">
+                                <label for="c411Apikey">Clé API</label>
+                                <input type="text" id="c411Apikey" placeholder="Clé API"
+                                    onclick="event.stopPropagation()">
                             </div>
                         </div>
-                        <span class="help-text">⚠️ ABN ralentit les recherches.</span>
                     </div>
-                </div>
 
-                <!-- C411 -->
-                <div class="provider-card" id="providerC411" onclick="toggleProvider('providerC411')">
-                    <div class="provider-header">
-                        <span class="provider-name">
-                            <span class="provider-dot"></span>
-                            C411
-                        </span>
-                        <span class="provider-chevron">▼</span>
-                    </div>
-                    <div class="provider-body">
-                        <div class="form-group">
-                            <label for="c411Apikey">Clé API</label>
-                            <input type="text" id="c411Apikey" placeholder="Clé API" onclick="event.stopPropagation()">
+                    <!-- Torr9 -->
+                    <div class="provider-card" id="providerTorr9" onclick="toggleProvider('providerTorr9')">
+                        <div class="provider-header">
+                            <span class="provider-name">
+                                <span class="provider-dot"></span>
+                                Torr9
+                            </span>
+                            <span class="provider-chevron">▼</span>
+                        </div>
+                        <div class="provider-body">
+                            <div class="form-group">
+                                <label for="torr9Passkey">Passkey</label>
+                                <input type="text" id="torr9Passkey" placeholder="Passkey"
+                                    onclick="event.stopPropagation()">
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Torr9 -->
-                <div class="provider-card" id="providerTorr9" onclick="toggleProvider('providerTorr9')">
-                    <div class="provider-header">
-                        <span class="provider-name">
-                            <span class="provider-dot"></span>
-                            Torr9
-                        </span>
-                        <span class="provider-chevron">▼</span>
-                    </div>
-                    <div class="provider-body">
-                        <div class="form-group">
-                            <label for="torr9Passkey">Passkey</label>
-                            <input type="text" id="torr9Passkey" placeholder="Passkey"
-                                onclick="event.stopPropagation()">
+                    <!-- Tr4ker -->
+                    <div class="provider-card" id="providerTr4ker" onclick="toggleProvider('providerTr4ker')">
+                        <div class="provider-header">
+                            <span class="provider-name">
+                                <span class="provider-dot"></span>
+                                Tr4ker
+                            </span>
+                            <span class="provider-chevron">▼</span>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Tr4ker -->
-                <div class="provider-card" id="providerTr4ker" onclick="toggleProvider('providerTr4ker')">
-                    <div class="provider-header">
-                        <span class="provider-name">
-                            <span class="provider-dot"></span>
-                            Tr4ker
-                        </span>
-                        <span class="provider-chevron">▼</span>
-                    </div>
-                    <div class="provider-body">
-                        <div class="form-group">
-                            <label for="tr4kerApikey">Clé API</label>
-                            <input type="text" id="tr4kerApikey" placeholder="tr4k_..."
-                                onclick="event.stopPropagation()">
+                        <div class="provider-body">
+                            <div class="form-group">
+                                <label for="tr4kerApikey">Clé API</label>
+                                <input type="text" id="tr4kerApikey" placeholder="tr4k_..."
+                                    onclick="event.stopPropagation()">
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Trackers UNIT3D -->
-        <div class="card">
-            <div class="card-header">
-                <h2>🔒 Trackers UNIT3D (Privés) <span class="badge">Recommandé</span></h2>
-            </div>
-
-            <p class="help-text" style="margin-bottom: 20px;">
-                Ajoutez ici vos trackers basés sur le moteur UNIT3D. UNIT3D est une plateforme de tracker BitTorrent
-                utilisée par de nombreux trackers privés français.
-                L'URL doit être la racine du site (https://site.com). Le token API se génère dans vos paramètres de
-                profil sur le site.
-            </p>
-
-            <div id="trackersContainer">
-                <!-- Les trackers seront ajoutés ici -->
-            </div>
-
-            <button type="button" class="btn btn-outline" onclick="addTracker()">+ Ajouter un Tracker
-                UNIT3D</button>
-        </div>
-
-        <!-- Filtres -->
-        <div class="card">
-            <div class="card-header">
-                <h2>⚙️ Filtres <span class="badge">Optionnel</span></h2>
-            </div>
-
-            <div class="form-group">
-                <label for="maxSize">Taille maximale des torrents (Go)</label>
-                <input type="number" id="maxSize" placeholder="50" value="50" min="0" step="1">
-                <span class="help-text">Limite en Go (0 = aucune limite). Filtrer les torrents trop volumineux pour
-                    économiser de la bande passante.</span>
-            </div>
-
-            <div class="form-group">
-                <label for="sortBy">Trier les résultats par</label>
-                <select id="sortBy">
-                    <option value="tracker_priority">Priorité des Trackers</option>
-                    <option value="size_asc">Taille (Croissante ⬇️)</option>
-                    <option value="size_desc">Taille (Décroissante ⬆️)</option>
-                    <option value="quality_desc">Qualité (Meilleure d'abord 🎞️)</option>
-                </select>
-                <span class="help-text">Choisissez comment les torrents trouvés doivent être ordonnés (les sources
-                    débridées restent toujours en premier). L'ordre par Tracker utilisera le drag & drop
-                    ci-dessous.</span>
-            </div>
-
-            <div class="form-group">
-                <label for="minQuality">Qualité minimale</label>
-                <select id="minQuality">
-                    <option value="">Aucun filtre</option>
-                    <option value="no_cam">Exclure les CAM/TS</option>
-                    <option value="720p">720p minimum</option>
-                    <option value="1080p">1080p minimum</option>
-                    <option value="4k">4K uniquement</option>
-                </select>
-                <span class="help-text">Les torrents dont la qualité est inconnue (non détectée dans le nom) ne sont
-                    jamais filtrés par cette option.</span>
-            </div>
-
-            <div class="form-group">
-                <label>Langues acceptées</label>
-                <div style="margin-bottom: 15px;">
-                    <label class="option-tile">
-                        <input type="checkbox" name="langFilter" value="VFF" id="langVFF">
-                        <span>🇫🇷 VFF</span>
-                    </label>
-                    <label class="option-tile">
-                        <input type="checkbox" name="langFilter" value="VF" id="langVF">
-                        <span>🇫🇷 VF</span>
-                    </label>
-                    <label class="option-tile">
-                        <input type="checkbox" name="langFilter" value="VFQ" id="langVFQ">
-                        <span>🇨🇦 VFQ</span>
-                    </label>
-                    <label class="option-tile">
-                        <input type="checkbox" name="langFilter" value="VOSTFR" id="langVOSTFR">
-                        <span>🇫🇷🇯🇵 VOSTFR</span>
-                    </label>
-                    <label class="option-tile">
-                        <input type="checkbox" name="langFilter" value="Multi" id="langMulti">
-                        <span>🇫🇷+🇺🇸 Multi</span>
-                    </label>
-                    <label class="option-tile">
-                        <input type="checkbox" name="langFilter" value="VO" id="langVO">
-                        <span>🇺🇸 VO</span>
-                    </label>
+            <!-- Trackers UNIT3D -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><span class="card-icon">🔒</span> Trackers UNIT3D (Privés) <span
+                            class="badge">Recommandé</span></h2>
                 </div>
-                <span class="help-text">Aucune case cochée = toutes les langues acceptées. Un torrent dont la langue
-                    n'a pas pu être détectée dans son nom n'est jamais filtré par cette option.</span>
-            </div>
 
-            <div class="form-group">
-                <label for="excludeKeywords">Mots-clés à exclure</label>
-                <input type="text" id="excludeKeywords" placeholder="Ex: HDCAM, x265, EVO">
-                <span class="help-text">Liste de mots-clés séparés par des virgules. Tout torrent dont le nom contient
-                    un de ces mots (insensible à la casse) sera exclu des résultats.</span>
+                <p class="help-text" style="margin-bottom: 20px;">
+                    Ajoutez ici vos trackers basés sur le moteur UNIT3D. UNIT3D est une plateforme de tracker
+                    BitTorrent utilisée par de nombreux trackers privés français.
+                    L'URL doit être la racine du site (https://site.com). Le token API se génère dans vos paramètres
+                    de profil sur le site.
+                </p>
+
+                <div id="trackersContainer">
+                    <!-- Les trackers seront ajoutés ici -->
+                </div>
+
+                <button type="button" class="btn btn-outline" onclick="addTracker()">+ Ajouter un Tracker
+                    UNIT3D</button>
             </div>
         </div>
 
-        <!-- Ordre de priorité -->
-        <div class="card">
-            <div class="card-header">
-                <h2>↕️ Ordre d'affichage des Trackers</h2>
+        <!-- ===================== ÉTAPE 4 : FILTRES & TRI ===================== -->
+        <div class="step-panel" data-step="4">
+            <!-- Filtres -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><span class="card-icon">⚙️</span> Filtres <span class="badge">Optionnel</span></h2>
+                </div>
+
+                <div class="form-group">
+                    <label for="maxSize">Taille maximale des torrents (Go)</label>
+                    <input type="number" id="maxSize" placeholder="50" value="50" min="0" step="1">
+                    <span class="help-text">Limite en Go (0 = aucune limite). Filtrer les torrents trop volumineux
+                        pour économiser de la bande passante.</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="sortBy">Trier les résultats par</label>
+                    <select id="sortBy">
+                        <option value="tracker_priority">Priorité des Trackers</option>
+                        <option value="size_asc">Taille (Croissante ⬇️)</option>
+                        <option value="size_desc">Taille (Décroissante ⬆️)</option>
+                        <option value="quality_desc">Qualité (Meilleure d'abord 🎞️)</option>
+                    </select>
+                    <span class="help-text">Choisissez comment les torrents trouvés doivent être ordonnés (les
+                        sources débridées restent toujours en premier). L'ordre par Tracker utilisera le drag & drop
+                        ci-dessous.</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="minQuality">Qualité minimale</label>
+                    <select id="minQuality">
+                        <option value="">Aucun filtre</option>
+                        <option value="no_cam">Exclure les CAM/TS</option>
+                        <option value="720p">720p minimum</option>
+                        <option value="1080p">1080p minimum</option>
+                        <option value="4k">4K uniquement</option>
+                    </select>
+                    <span class="help-text">Les torrents dont la qualité est inconnue (non détectée dans le nom) ne
+                        sont jamais filtrés par cette option.</span>
+                </div>
+
+                <div class="form-group">
+                    <label>Langues acceptées</label>
+                    <div style="margin-bottom: 15px;">
+                        <label class="option-tile">
+                            <input type="checkbox" name="langFilter" value="VFF" id="langVFF">
+                            <span>🇫🇷 VFF</span>
+                        </label>
+                        <label class="option-tile">
+                            <input type="checkbox" name="langFilter" value="VF" id="langVF">
+                            <span>🇫🇷 VF</span>
+                        </label>
+                        <label class="option-tile">
+                            <input type="checkbox" name="langFilter" value="VFQ" id="langVFQ">
+                            <span>🇨🇦 VFQ</span>
+                        </label>
+                        <label class="option-tile">
+                            <input type="checkbox" name="langFilter" value="VOSTFR" id="langVOSTFR">
+                            <span>🇫🇷🇯🇵 VOSTFR</span>
+                        </label>
+                        <label class="option-tile">
+                            <input type="checkbox" name="langFilter" value="Multi" id="langMulti">
+                            <span>🇫🇷+🇺🇸 Multi</span>
+                        </label>
+                        <label class="option-tile">
+                            <input type="checkbox" name="langFilter" value="VO" id="langVO">
+                            <span>🇺🇸 VO</span>
+                        </label>
+                    </div>
+                    <span class="help-text">Aucune case cochée = toutes les langues acceptées. Un torrent dont la
+                        langue n'a pas pu être détectée dans son nom n'est jamais filtré par cette option.</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="excludeKeywords">Mots-clés à exclure</label>
+                    <input type="text" id="excludeKeywords" placeholder="Ex: HDCAM, x265, EVO">
+                    <span class="help-text">Liste de mots-clés séparés par des virgules. Tout torrent dont le nom
+                        contient un de ces mots (insensible à la casse) sera exclu des résultats.</span>
+                </div>
             </div>
-            <p class="help-text" style="margin-bottom: 20px;">
-                Glissez-déposez les éléments ci-dessous pour définir l'ordre dans lequel les résultats apparaîtront
-                dans
-                Stremio.
-            </p>
 
-            <style>
-                .sortable-list {
-                    list-style: none;
-                    padding: 0;
-                    margin: 0;
-                }
+            <!-- Ordre de priorité -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><span class="card-icon">↕️</span> Ordre d'affichage des Trackers</h2>
+                </div>
+                <p class="help-text" style="margin-bottom: 20px;">
+                    Glissez-déposez les éléments ci-dessous pour définir l'ordre dans lequel les résultats
+                    apparaîtront dans Stremio.
+                </p>
 
-                .sortable-item {
-                    display: flex;
-                    align-items: center;
-                    background: var(--bg-secondary);
-                    border: 2px solid var(--border);
-                    border-radius: var(--radius);
-                    padding: 12px 16px;
-                    margin-bottom: 8px;
-                    cursor: grab;
-                    font-weight: 600;
-                    transition: var(--transition);
-                }
+                <style>
+                    .sortable-list {
+                        list-style: none;
+                        padding: 0;
+                        margin: 0;
+                    }
 
-                .sortable-item:active {
-                    cursor: grabbing;
-                }
+                    .sortable-item {
+                        display: flex;
+                        align-items: center;
+                        background: var(--bg-secondary);
+                        border: 2px solid var(--border);
+                        border-radius: var(--radius);
+                        padding: 12px 16px;
+                        margin-bottom: 8px;
+                        cursor: grab;
+                        font-weight: 600;
+                        transition: var(--transition);
+                    }
 
-                .sortable-item:hover {
-                    border-color: var(--primary-light);
-                }
+                    .sortable-item:active {
+                        cursor: grabbing;
+                    }
 
-                .sortable-item.sortable-ghost {
-                    opacity: 0.4;
-                    background: var(--bg);
-                }
+                    .sortable-item:hover {
+                        border-color: var(--primary-light);
+                    }
 
-                .drag-handle {
-                    margin-right: 12px;
-                    color: var(--text-muted);
-                    font-size: 1.2rem;
-                }
-            </style>
+                    .sortable-item.sortable-ghost {
+                        opacity: 0.4;
+                        background: var(--bg);
+                    }
 
-            <ul id="trackerOrderList" class="sortable-list">
-                <li class="sortable-item" data-id="unit3d"><span class="drag-handle">≡</span> 🔒 UNIT3D</li>
-                <li class="sortable-item" data-id="ygg"><span class="drag-handle">≡</span> 🐝 YGG</li>
-                <li class="sortable-item" data-id="torr9"><span class="drag-handle">≡</span> 🔥 Torr9</li>
-                <li class="sortable-item" data-id="abn"><span class="drag-handle">≡</span> 🎬 ABN</li>
-                <li class="sortable-item" data-id="c411"><span class="drag-handle">≡</span> 📡 C411</li>
-                <li class="sortable-item" data-id="tr4ker"><span class="drag-handle">≡</span> 🎯 Tr4ker</li>
-            </ul>
+                    .drag-handle {
+                        margin-right: 12px;
+                        color: var(--text-muted);
+                        font-size: 1.2rem;
+                    }
+                </style>
+
+                <ul id="trackerOrderList" class="sortable-list">
+                    <li class="sortable-item" data-id="unit3d"><span class="drag-handle">≡</span> 🔒 UNIT3D</li>
+                    <li class="sortable-item" data-id="ygg"><span class="drag-handle">≡</span> 🐝 YGG</li>
+                    <li class="sortable-item" data-id="torr9"><span class="drag-handle">≡</span> 🔥 Torr9</li>
+                    <li class="sortable-item" data-id="abn"><span class="drag-handle">≡</span> 🎬 ABN</li>
+                    <li class="sortable-item" data-id="c411"><span class="drag-handle">≡</span> 📡 C411</li>
+                    <li class="sortable-item" data-id="tr4ker"><span class="drag-handle">≡</span> 🎯 Tr4ker</li>
+                </ul>
+            </div>
         </div>
 
-        <div style="text-align: center; margin-top: 40px;">
-            <button type="button" class="btn btn-primary" onclick="generateLink()">🚀 Générer et Installer</button>
+        <!-- ===================== ÉTAPE 5 : RÉCAPITULATIF & INSTALLATION ===================== -->
+        <div class="step-panel" data-step="5">
+            <div class="card">
+                <div class="card-header">
+                    <h2><span class="card-icon">🚀</span> Récapitulatif</h2>
+                </div>
+                <p class="help-text" style="margin-bottom: 16px;">
+                    Vérifiez rapidement votre configuration avant de générer le lien d'installation. Vous pouvez
+                    revenir en arrière à tout moment en cliquant sur une étape ci-dessus.
+                </p>
+                <div class="summary-box" id="summaryBox"></div>
+            </div>
+
+            <div style="text-align: center; margin-top: 8px;">
+                <button type="button" class="btn btn-primary" onclick="generateLink()">🚀 Générer et
+                    Installer</button>
+            </div>
+
+            <div id="installLink">
+                <h3>Configuration prête !</h3>
+                <a href="#" id="stremioLink" class="install-btn">Installer sur Stremio</a>
+                <div id="extraLinks"></div>
+            </div>
         </div>
 
-        <div id="installLink">
-            <h3>Configuration prête !</h3>
-            <a href="#" id="stremioLink" class="install-btn">Installer sur Stremio</a>
-            <div id="extraLinks"></div>
+        <!-- Navigation -->
+    </div>
+
+    <div class="step-nav">
+        <div class="step-nav-inner">
+            <button type="button" class="btn btn-outline" id="prevBtn" style="visibility: hidden;"
+                onclick="goStep(currentStep - 1)">← Précédent</button>
+            <button type="button" class="btn btn-primary" id="nextBtn" onclick="goStep(currentStep + 1)">Suivant
+                →</button>
         </div>
     </div>
 
@@ -1021,6 +1310,106 @@
         const qbittorrentEnabled = true;
         const manifestBlurb = "";
         const appVersion = "1.1.0";
+
+        // ---------- Navigation par étapes ----------
+        const STEP_TITLES = {
+            1: 'Clé TMDB',
+            2: 'Débrideurs & Lecture',
+            3: 'Trackers',
+            4: 'Filtres & Tri',
+            5: 'Récapitulatif & Installation'
+        };
+        let currentStep = 1;
+
+        function goStep(n) {
+            n = Math.max(1, Math.min(5, n));
+            currentStep = n;
+
+            document.querySelectorAll('.step-panel').forEach(p => {
+                p.classList.toggle('active', parseInt(p.getAttribute('data-step'), 10) === n);
+            });
+
+            document.querySelectorAll('.step-dot').forEach(dot => {
+                const step = parseInt(dot.getAttribute('data-step'), 10);
+                dot.classList.remove('active', 'completed');
+                if (step === n) dot.classList.add('active');
+                else if (step < n) dot.classList.add('completed');
+            });
+
+            document.querySelectorAll('.step-connector').forEach(conn => {
+                const step = parseInt(conn.getAttribute('data-step'), 10);
+                conn.classList.toggle('completed', step < n);
+            });
+
+            document.getElementById('stepLabel').textContent = `Étape ${n}/5`;
+            document.getElementById('stepTitle').textContent = STEP_TITLES[n];
+
+            document.getElementById('prevBtn').style.visibility = n === 1 ? 'hidden' : 'visible';
+            document.getElementById('nextBtn').style.display = n === 5 ? 'none' : 'inline-flex';
+
+            if (n === 5) {
+                renderSummary();
+            }
+
+            const top = document.getElementById('stepTop');
+            if (top) top.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function renderSummary() {
+            const box = document.getElementById('summaryBox');
+            if (!box) return;
+
+            const tmdbKey = document.getElementById('tmdbKey').value.trim();
+
+            const debridServices = [];
+            if (document.getElementById('debridAlldebrid').checked) debridServices.push('AllDebrid');
+            if (document.getElementById('debridTorbox').checked) debridServices.push('TorBox');
+            if (document.getElementById('debridDebridlink').checked) debridServices.push('Debrid-Link');
+            if (document.getElementById('debridRealdebrid').checked) debridServices.push('Real-Debrid');
+
+            const qbitUrl = document.getElementById('qbitUrl').value.trim();
+            const qbitPublicUrl = document.getElementById('qbitPublicUrl').value.trim();
+            const hasQbit = !!(qbitUrl && qbitPublicUrl);
+
+            const unit3dCount = document.querySelectorAll('.tracker-item').length;
+            const activeProviders = ['providerAbn', 'providerC411', 'providerTorr9', 'providerTr4ker']
+                .filter(id => {
+                    const el = document.getElementById(id);
+                    return el && el.classList.contains('active');
+                }).length;
+
+            const minQuality = document.getElementById('minQuality').value;
+            const languages = Array.from(document.querySelectorAll('input[name="langFilter"]:checked')).map(el => el.value);
+            const excludeKeywords = document.getElementById('excludeKeywords').value.trim();
+            const filtersActive = !!(minQuality || languages.length || excludeKeywords);
+
+            box.innerHTML = `
+                <div class="summary-row">
+                    <span class="summary-label">🔑 Clé TMDB</span>
+                    <span class="summary-value ${tmdbKey ? 'ok' : 'warn'}">${tmdbKey ? 'Renseignée' : 'Manquante'}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">⚡ Débrideurs actifs</span>
+                    <span class="summary-value ${debridServices.length ? 'ok' : ''}">${debridServices.length ? debridServices.join(', ') : 'Aucun'}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">📥 qBittorrent</span>
+                    <span class="summary-value ${hasQbit ? 'ok' : ''}">${hasQbit ? 'Configuré' : 'Non configuré'}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">🌐 Trackers publics/semi-privés actifs</span>
+                    <span class="summary-value">${activeProviders} + YGG</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">🔒 Trackers UNIT3D ajoutés</span>
+                    <span class="summary-value">${unit3dCount}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">🧪 Filtres actifs</span>
+                    <span class="summary-value">${filtersActive ? 'Oui' : 'Aucun'}</span>
+                </div>
+            `;
+        }
 
         function addTracker(data = null) {
             const container = document.getElementById('trackersContainer');
@@ -1231,6 +1620,9 @@
             handle: '.sortable-item'
         });
 
+        // Initialiser le wizard sur l'étape 1
+        goStep(1);
+
         function generateLink() {
             const tmdbKey = document.getElementById('tmdbKey').value.trim();
 
@@ -1297,6 +1689,7 @@
 
             if (!tmdbKey) {
                 alert("Erreur : La clé TMDB est obligatoire.");
+                goStep(1);
                 return;
             }
 
@@ -1306,6 +1699,7 @@
                 } else {
                     alert("Erreur : Vous devez configurer soit un service de débridage (AllDebrid/TorBox/Debrid-Link/Real-Debrid), soit qBittorrent.");
                 }
+                goStep(2);
                 return;
             }
 
